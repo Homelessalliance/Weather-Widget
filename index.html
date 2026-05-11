@@ -23,3 +23,54 @@
     }
 
     .temp {
+      font-size: 140px;
+      font-weight: bold;
+    }
+
+    .desc {
+      font-size: 48px;
+      margin-top: 10px;
+    }
+
+    .details {
+      margin-top: 20px;
+      font-size: 28px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+
+<div class="city">Oklahoma City</div>
+<div id="temp" class="temp">--°F</div>
+<div id="desc" class="desc">Loading...</div>
+<div id="details" class="details"></div>
+
+<script>
+async function loadWeather() {
+  try {
+    const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=35.4676&longitude=-97.5164&current_weather=true");
+    const data = await res.json();
+
+    let c = data.current_weather.temperature;
+    let f = (c * 9/5) + 32;
+
+    document.getElementById("temp").innerText = Math.round(f) + "°F";
+    document.getElementById("desc").innerText = "Current Conditions";
+    document.getElementById("details").innerText =
+      "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
+
+  } catch (e) {
+    // fallback in case API fails
+    document.getElementById("temp").innerText = "72°F";
+    document.getElementById("desc").innerText = "Weather unavailable";
+    document.getElementById("details").innerText = "Check connection";
+  }
+}
+
+loadWeather();
+setInterval(loadWeather, 600000);
+</script>
+
+</body>
+</html>
