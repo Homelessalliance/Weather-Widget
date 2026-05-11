@@ -1,52 +1,113 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Weather</title>
-  <style>
-    body {
-      margin: 0;
-      background: #0b1e3c;
-      color: white;
-      font-family: Arial, sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      flex-direction: column;
-    }
+<meta charset="UTF-8">
+<title>Dashboard</title>
 
-    .city {
-      font-size: 48px;
-      margin-bottom: 20px;
-      opacity: 0.8;
-    }
+<style>
+body {
+  margin: 0;
+  background: #0b1e3c;
+  color: white;
+  font-family: Arial, sans-serif;
+}
 
-    .temp {
-      font-size: 140px;
-      font-weight: bold;
-    }
+/* Layout */
+.container {
+  display: flex;
+  height: 100vh;
+}
 
-    .desc {
-      font-size: 48px;
-      margin-top: 10px;
-    }
+/* LEFT: Weather */
+.weather {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
 
-    .details {
-      margin-top: 20px;
-      font-size: 28px;
-      opacity: 0.8;
-    }
-  </style>
+/* RIGHT: Info panel */
+.side {
+  flex: 1;
+  background: #132f5e;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px;
+}
+
+/* Weather styling */
+.city {
+  font-size: 40px;
+  opacity: 0.8;
+}
+
+.temp {
+  font-size: 140px;
+  font-weight: bold;
+}
+
+.desc {
+  font-size: 36px;
+  margin-top: 10px;
+}
+
+.details {
+  font-size: 24px;
+  opacity: 0.8;
+  margin-top: 10px;
+}
+
+/* Clock */
+.clock {
+  font-size: 48px;
+  font-weight: bold;
+}
+
+.date {
+  font-size: 28px;
+  opacity: 0.8;
+}
+
+/* Placeholder announcements */
+.notice {
+  font-size: 32px;
+}
+</style>
 </head>
+
 <body>
 
-<div class="city">Oklahoma City</div>
-<div id="temp" class="temp">--°F</div>
-<div id="desc" class="desc">Loading...</div>
-<div id="details" class="details"></div>
+<div class="container">
+
+  <!-- LEFT SIDE: WEATHER -->
+  <div class="weather">
+    <div class="city">Oklahoma City</div>
+    <div id="temp" class="temp">--°F</div>
+    <div id="desc" class="desc">Loading...</div>
+    <div id="details" class="details"></div>
+  </div>
+
+  <!-- RIGHT SIDE: INFO PANEL -->
+  <div class="side">
+
+    <div>
+      <div id="clock" class="clock"></div>
+      <div id="date" class="date"></div>
+    </div>
+
+    <div class="notice">
+      Stay Safe<br>
+      Check Daily Updates
+    </div>
+
+  </div>
+</div>
 
 <script>
+
+/* WEATHER */
 async function loadWeather() {
   try {
     const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=35.4676&longitude=-97.5164&current_weather=true");
@@ -61,15 +122,29 @@ async function loadWeather() {
       "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
   } catch (e) {
-    // fallback in case API fails
     document.getElementById("temp").innerText = "72°F";
     document.getElementById("desc").innerText = "Weather unavailable";
-    document.getElementById("details").innerText = "Check connection";
+    document.getElementById("details").innerText = "";
   }
+}
+
+/* CLOCK */
+function updateClock() {
+  const now = new Date();
+
+  document.getElementById("clock").innerText =
+    now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  document.getElementById("date").innerText =
+    now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
 loadWeather();
 setInterval(loadWeather, 600000);
+
+updateClock();
+setInterval(updateClock, 60000);
+
 </script>
 
 </body>
