@@ -1,8 +1,9 @@
 {
   "status": "Available",
   "queue": [
-    { "position": 1, "name": "Client 1", "status": "Waiting" },
-    { "position": 2, "name": "Client 2", "status": "Waiting" },
-    { "position": 3, "name": "Client 3", "status": "Serving" }
+    { "position": 1, "name": "John" },
+    { "position": 2, "name": "Sarah" },
+    { "position": 3, "name": "Mike" }
   ]
 }
+``
