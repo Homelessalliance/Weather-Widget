@@ -184,27 +184,4 @@ setInterval(updateClock, 60000);
 </script>
 
 </body>
- <script>
-fetch('queue.json')
-  .then(response => response.json())
-  .then(data => {
-    const queueDiv = document.getElementById("queue");
-    const queueBox = document.getElementById("queueBox");
-
-    if (data.status === "Not Available") {
-      queueBox.innerHTML = "<h3>Advocate Unavailable</h3><p>Please check back later</p>";
-      return;
-    }
-
-    let html = "";
-
-    data.queue.forEach(person => {
-      html += `<div style="margin: 10px 0; font-size: 28px;">
-                 ${person.position}. ${person.name}
-               </div>`;
-    });
-
-    queueDiv.innerHTML = html;
-  });
-</script>
-</html>
+ 
