@@ -203,36 +203,7 @@ fetch('queue.json')
     queueDiv.innerHTML = html;
   });
 </script>
-
-<!-- ✅ QUEUE SCRIPT -->
-<script>
-fetch('queue.json')
-  .then(response => response.json())
-  .then(data => {
-    const queueDiv = document.getElementById("queue");
-    const queueBox = document.getElementById("queueBox");
-
-    if (data.status === "Not Available") {
-      queueBox.innerHTML = "<h3>Advocate Unavailable</h3><p>Please check back later</p>";
-      return;
-    }
-
-    if (!data.queue || data.queue.length === 0) {
-      queueDiv.innerHTML = "<p>No one waiting</p>";
-      return;
-    }
-
-    let html = "";
-
-    data.queue.forEach(person => {
-      html += `<div style="margin: 10px 0; font-size: 30px;">
-                 ${person.position}. ${person.name}
-               </div>`;
-    });
-
-    queueDiv.innerHTML = html;
-  });
-
+<!-- QUEUE SCRIPT -->
 <script>
 fetch('queue.json')
   .then(response => response.json())
@@ -263,6 +234,7 @@ fetch('queue.json')
 </script>
 
 </body>
+</html>
 </html>
 
  
