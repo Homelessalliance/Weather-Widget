@@ -203,7 +203,6 @@ fetch('queue.json')
     queueDiv.innerHTML = html;
   });
 </script>
-<!-- QUEUE SCRIPT -->
 <script>
 fetch('queue.json')
   .then(response => response.json())
@@ -230,6 +229,9 @@ fetch('queue.json')
     });
 
     queueDiv.innerHTML = html;
+  })
+  .catch(error => {
+    console.error("Queue error:", error);
   });
 </script>
 
