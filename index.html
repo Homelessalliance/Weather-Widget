@@ -177,7 +177,7 @@ setInterval(updateClock, 60000);
 </script>
 
 <script>
-fetch('queue.json')
+fetch('https://homelessalliance.github.io/Weather-Widget/queue.json')
   .then(response => response.json())
   .then(data => {
     const queueDiv = document.getElementById("queue");
