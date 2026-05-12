@@ -174,14 +174,15 @@ setInterval(loadWeather, 600000);
 updateClock();
 setInterval(updateClock, 60000);
 
-</script>
-
 <script>
 fetch('https://homelessalliance.github.io/Weather-Widget/queue.json')
   .then(response => response.json())
   .then(data => {
+
     const queueDiv = document.getElementById("queue");
     const queueBox = document.getElementById("queueBox");
+
+    if (!queueDiv || !queueBox) return;
 
     if (data.status === "Not Available") {
       queueBox.innerHTML = "<h3>Advocate Unavailable</h3><p>Please check back later</p>";
@@ -205,8 +206,10 @@ fetch('https://homelessalliance.github.io/Weather-Widget/queue.json')
   })
   .catch(error => {
     console.error("Queue error:", error);
+    document.getElementById("queue").innerHTML = "<p>Error loading queue</p>";
   });
 </script>
+
 
 </body>
 </html>
