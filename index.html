@@ -5,7 +5,7 @@
 <title>Dashboard</title>
 
 <style>
- .logo {
+.logo {
   position: absolute;
   top: 20px;
   left: 20px;
@@ -15,14 +15,13 @@
 #queueBox {
   position: absolute;
   bottom: 40px;
-  right: 60px; /* move it slightly left from edge */
+  right: 60px;
   text-align: left;
   max-width: 300px;
   background: rgba(255, 255, 255, 0.08);
   padding: 20px;
   border-radius: 10px;
 }
-
 
 body {
   margin: 0;
@@ -31,11 +30,11 @@ body {
   font-family: Arial, sans-serif;
 }
 
-
 #queueBox h3 {
   font-size: 30px;
   margin-bottom: 10px;
 }
+
 /* Layout */
 .container {
   display: flex;
@@ -94,7 +93,7 @@ body {
   opacity: 0.8;
 }
 
-/* Placeholder announcements */
+/* Notice */
 .notice {
   font-size: 32px;
 }
@@ -102,12 +101,12 @@ body {
 </head>
 
 <body>
+
 <img src="logo.png" style="position:absolute; top:20px; left:20px; width:80px; height:auto;">
 
-  
 <div class="container">
 
-  <!-- LEFT SIDE: WEATHER -->
+  <!-- LEFT SIDE -->
   <div class="weather">
     <div class="city">Oklahoma City</div>
     <div id="temp" class="temp">--°F</div>
@@ -115,7 +114,7 @@ body {
     <div id="details" class="details"></div>
   </div>
 
-  <!-- RIGHT SIDE: INFO PANEL -->
+  <!-- RIGHT SIDE -->
   <div class="side">
 
     <div>
@@ -125,18 +124,20 @@ body {
 
     <div class="notice">
       Welcome to the Homeless Alliance<br>
+
       <div id="queueBox">
-  <h3>Waiting List</h3>
-  <div id="queue"></div>
-</div>
+        <h3>Waiting List</h3>
+        <div id="queue"></div>
+      </div>
+
     </div>
 
   </div>
+
 </div>
 
+<!-- WEATHER + CLOCK -->
 <script>
-
-/* WEATHER */
 async function loadWeather() {
   try {
     const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=35.4676&longitude=-97.5164&current_weather=true");
@@ -157,7 +158,6 @@ async function loadWeather() {
   }
 }
 
-/* CLOCK */
 function updateClock() {
   const now = new Date();
 
@@ -173,7 +173,9 @@ setInterval(loadWeather, 600000);
 
 updateClock();
 setInterval(updateClock, 60000);
+</script>
 
+<!-- QUEUE -->
 <script>
 fetch('https://homelessalliance.github.io/Weather-Widget/queue.json')
   .then(response => response.json())
@@ -210,8 +212,5 @@ fetch('https://homelessalliance.github.io/Weather-Widget/queue.json')
   });
 </script>
 
-
 </body>
 </html>
-
- 
