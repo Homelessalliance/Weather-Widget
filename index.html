@@ -12,10 +12,11 @@ body {
   font-family: Arial, sans-serif;
 }
 
+/* ✅ moved logo away from edge */
 .logo {
   position: absolute;
   top: 20px;
-  left: 30px;
+  left: 80px;
   width: 160px;
 }
 
@@ -46,7 +47,6 @@ body {
 .desc {
   font-size: 28px;
   margin-top: 10px;
-  opacity: 0.9;
 }
 
 .current-icon { font-size: 75px; }
@@ -82,10 +82,19 @@ body {
   margin-top: 5px;
 }
 
-.clock { font-size: 48px; font-weight: bold; }
+/* ✅ new alert text */
+.alert {
+  margin-top: 25px;
+  font-size: 28px;
+  color: #7fc8f8;
+}
+
+/* Clock */
+.clock { font-size: 48px; }
 .date { font-size: 28px; opacity: 0.8; }
 
 .notice { font-size: 32px; }
+
 </style>
 </head>
 
@@ -109,10 +118,12 @@ body {
 
     <div id="forecast" class="forecast"></div>
 
+    <!-- ✅ Rain message -->
+    <div id="alert" class="alert"></div>
+
   </div>
 
   <div class="side">
-
     <div>
       <div id="clock" class="clock"></div>
       <div id="date" class="date"></div>
@@ -120,21 +131,18 @@ body {
 
     <div class="notice">
       <div>Welcome to the Homeless Alliance</div>
-
       <div style="height:20px;"></div>
-
       <div style="color:#ffd166; font-weight:bold;">
         Day Shelter Hours: 7:00 AM - 3:00 PM
       </div>
     </div>
-
   </div>
 
 </div>
 
 <script>
 
-/* ✅ ICON BASE LOGIC */
+/* ✅ Updated icon logic with safer storm icon */
 function getIcon(code) {
   if (code === 0) return "☀️";
   if (code <= 2) return "🌤️";
@@ -143,7 +151,8 @@ function getIcon(code) {
   if (code >= 51 && code <= 67) return "🌧️";
   if (code >= 71 && code <= 77) return "🌨️";
 
-  if (code >= 95) return "⛈️";
+  /* ✅ more compatible storm icon */
+  if (code >= 95) return "🌩️";
 
   return "🌤️";
 }
@@ -165,9 +174,8 @@ async function loadWeather() {
 
     let f = Math.round((data.current_weather.temperature * 9/5) + 32);
 
-    const tempEl = document.getElementById("temp");
-    tempEl.innerText = f + "°F";
-    tempEl.style.color = getTempColor(f);
+    document.getElementById("temp").innerText = f + "°F";
+    document.getElementById("temp").style.color = getTempColor(f);
 
     document.getElementById("icon").innerText =
       getIcon(data.current_weather.weathercode);
@@ -176,16 +184,17 @@ async function loadWeather() {
       "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
     let html = "";
+    let alertText = "";
 
     data.daily.time.slice(0,5).forEach((day, i) => {
 
-      let baseCode = data.daily.weathercode[i];
+      let code = data.daily.weathercode[i];
       let rain = data.daily.precipitation_probability_max[i];
 
-      let icon = getIcon(baseCode);
+      let icon = getIcon(code);
 
-      /* ✅ FINAL FIX — prevent false storms */
-      if (baseCode >= 95 && rain < 25) {
+      /* ✅ prevent false storms */
+      if (code >= 95 && rain < 25) {
         icon = rain > 10 ? "🌧️" : "☁️";
       }
 
@@ -193,19 +202,22 @@ async function loadWeather() {
       let low  = Math.round((data.daily.temperature_2m_min[i] * 9/5) + 32);
 
       let label = new Date(day).toLocaleDateString([], { weekday: 'short' });
-      let color = getTempColor(high);
 
-      /* ✅ CLEAN rain display */
       let rainDisplay = rain >= 15
         ? `<div class="rain" style="color:#7fc8f8;">${rain}%</div>`
         : "";
+
+      /* ✅ Generate alert */
+      if (rain >= 25 && i > 0) {
+        alertText = "Rain Possible " + label;
+      }
 
       html += `
         <div class="forecast-day">
           <div>${label}</div>
           <div class="icon">${icon}</div>
           <div>
-            <span style="color:${color}; font-weight:bold;">${high}°</span>
+            <span style="color:${getTempColor(high)}; font-weight:bold;">${high}°</span>
             <span style="opacity:0.7;"> / ${low}°</span>
           </div>
           ${rainDisplay}
@@ -214,12 +226,14 @@ async function loadWeather() {
     });
 
     document.getElementById("forecast").innerHTML = html;
+    document.getElementById("alert").innerText = alertText;
 
   } catch (e) {
     document.getElementById("temp").innerText = "--°F";
   }
 }
 
+/* CLOCK */
 function updateClock() {
   const now = new Date();
 
@@ -240,4 +254,3 @@ setInterval(updateClock, 60000);
 
 </body>
 </html>
-``
