@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Dashboard</title>
+
+<style>
+.logo {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 120px;
+}
+
+#queueBox {
+  position: absolute;
+  bottom: 40px;
+  right: 60px;
+  text-align: left;
+  max-width: 300px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+body {
+  margin: 0;
+  background: #0b1e3c;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+#queueBox h3 {
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+
+/* Layout */
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+/* LEFT: Weather */
+.weather {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* RIGHT: Info panel */
+.side {
+  flex: 1;
+  background: #132f5e;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px;
+}
+
+/* Weather styling */
+.city {
+  font-size: 40px;
+  opacity: 0.8;
+}
+
+.temp {
+  font-size: 140px;
+  font-weight: bold;
+}
+
+.desc {
+  font-size: 36px;
+  margin-top: 10px;
+}
+
+.details {
+  font-size: 24px;
+  opacity: 0.8;
+  margin-top: 10px;
+}
+
+/* Clock */
+.clock {
+  font-size: 48px;
+  font-weight: bold;
+}
+
+.date {
+  font-size: 28px;
+  opacity: 0.8;
+}
+
+/* Notice */
+.notice {
+  font-size: 32px;
+}
+</style>
+</head>
+
+<body>
+
+<img src="logo.png" style="position:absolute; top:20px; left:20px; width:80px; height:auto;">
+
+<div class="container">
+
+  <!-- LEFT SIDE -->
+  <div class="weather">
+    <div class="city">Oklahoma City</div>
+    <div id="temp" class="temp">--°F</div>
+    <div id="desc" class="desc">Loading...</div>
+    <div id="details" class="details"></div>
+  </div>
+
+  <!-- RIGHT SIDE -->
+  <div class="side">
+
+    <div>
+      <div id="clock" class="clock"></div>
+      <div id="date" class="date"></div>
+    </div>
+
+    <div class="notice">
+      Welcome to the Homeless Alliance<br>
+
+      <div id="queueBox">
+        <h3>Waiting List</h3>
+        <div id="queue">Loading...</div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- WEATHER + CLOCK -->
+<script>
+async function loadWeather() {
+  try {
+    const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=35.4676&longitude=-97.5164&current_weather=true");
+    const data = await res.json();
+
+    let c = data.current_weather.temperature;
+    let f = (c * 9/5) + 32;
+
+    document.getElementById("temp").innerText = Math.round(f) + "°F";
+    document.getElementById("desc").innerText = "Current Conditions";
+    document.getElementById("details").innerText =
+      "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
+
+  } catch (e) {
+    document.getElementById("temp").innerText = "72°F";
+    document.getElementById("desc").innerText = "Weather unavailable";
+    document.getElementById("details").innerText = "";
+  }
+}
+
+function updateClock() {
+  const now = new Date();
+
+  document.getElementById("clock").innerText =
+    now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  document.getElementById("date").innerText =
+    now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+}
+
+loadWeather();
+setInterval(loadWeather, 600000);
+
+updateClock();
+setInterval(updateClock, 60000);
+</script>
+
+<!-- QUEUE -->
+<script>
+fetch('https://homelessalliance.github.io/Weather-Widget/queue.json')
+  .then(response => response.json())
+  .then(data => {
+
+    const queueDiv = document.getElementById("queue");
+    const queueBox = document.getElementById("queueBox");
+
+    if (!queueDiv || !queueBox) return;
+
+    if (data.status === "Not Available") {
+      queueBox.innerHTML = "<h3>Advocate Unavailable</h3><p>Please check back later</p>";
+      return;
+    }
+
+    if (!data.queue || data.queue.length === 0) {
+      queueDiv.innerHTML = "<p>No one waiting</p>";
+      return;
+    }
+
+    let html = "";
+
+    data.queue.forEach(person => {
+      html += `<div style="margin: 10px 0; font-size: 30px;">
+                 ${person.position}. ${person.name}
+               </div>`;
+    });
+
+    queueDiv.innerHTML = html;
+  })
+  .catch(error => {
+    console.error("Queue error:", error);
+    document.getElementById("queue").innerHTML = "<p>Error loading queue</p>";
+  });
+</script>
+
+</body>
+</html>
