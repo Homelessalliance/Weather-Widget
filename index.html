@@ -17,7 +17,7 @@ body {
   position: absolute;
   top: 20px;
   left: 30px;
-  width: 160px; /* ✅ Larger */
+  width: 160px;
 }
 
 /* Layout */
@@ -46,6 +46,13 @@ body {
 /* Weather */
 .city { font-size: 40px; opacity: 0.8; }
 
+/* ✅ moved current conditions */
+.desc {
+  font-size: 28px;
+  margin-top: 10px;
+  opacity: 0.9;
+}
+
 .current-icon {
   font-size: 75px;
 }
@@ -53,22 +60,23 @@ body {
 .temp {
   font-size: 140px;
   font-weight: bold;
+  margin-top: 10px;
 }
 
 /* Forecast */
-.icon { font-size: 24px; }
-
-.desc { font-size: 36px; margin-top: 10px; }
-
 .forecast {
   display: flex;
-  gap: 25px;
-  margin-top: 40px;
+  gap: 30px;
+  margin-top: 50px;
 }
 
 .forecast-day {
   text-align: center;
   font-size: 22px;
+}
+
+.icon {
+  font-size: 26px;
 }
 
 /* Clock */
@@ -88,20 +96,26 @@ body {
 
 <div class="container">
 
+  <!-- LEFT -->
   <div class="weather">
+
     <div class="city">Oklahoma City</div>
+
+    <!-- ✅ moved here -->
+    <div class="desc">Current Conditions</div>
 
     <div style="display:flex; align-items:center; gap:25px;">
       <div id="icon" class="current-icon">☀️</div>
       <div id="temp" class="temp">--°F</div>
     </div>
 
-    <div id="desc" class="desc">Loading...</div>
-
     <div id="forecast" class="forecast"></div>
+
   </div>
 
+  <!-- RIGHT -->
   <div class="side">
+
     <div>
       <div id="clock" class="clock"></div>
       <div id="date" class="date"></div>
@@ -110,43 +124,46 @@ body {
     <div class="notice">
       <div>Welcome to the Homeless Alliance</div>
 
-      <!-- ✅ spacing -->
       <div style="height:20px;"></div>
 
       <div style="color:#ffd166; font-weight:bold;">
         Day Shelter Hours: 7:00 AM - 3:00 PM
       </div>
     </div>
+
   </div>
 
 </div>
 
 <script>
 
-/* ICON LOGIC */
+/* ✅ Improved icon logic (includes storms) */
 function getIcon(code) {
-  if (code === 0) return "☀️";
-  if (code <= 3) return "🌤️";
-  if (code <= 48) return "☁️";
-  if (code <= 82) return "🌧️";
-  if (code <= 86) return "🌨️";
+  if (code === 0) return "☀️";              // clear
+  if (code <= 3) return "🌤️";               // partly cloudy
+  if (code <= 48) return "☁️";              // cloudy
+  if (code <= 67) return "🌧️";              // rain
+  if (code <= 77) return "🌨️";              // snow
+  if (code <= 82) return "🌧️";              // heavier rain
+  if (code <= 99) return "⛈️";              // thunderstorms ✅
   return "🌤️";
 }
 
-/* ✅ TEMP COLOR FUNCTION */
+/* ✅ temp color */
 function getTempColor(tempF) {
-  if (tempF < 50) return "#4cc9f0";      // cold (blue)
-  if (tempF < 70) return "#ffffff";      // mild (white)
-  if (tempF < 85) return "#ffd166";      // warm (yellow)
-  return "#ff6b6b";                      // hot (red/orange)
+  if (tempF < 50) return "#4cc9f0";
+  if (tempF < 70) return "#ffffff";
+  if (tempF < 85) return "#ffd166";
+  return "#ff6b6b";
 }
 
 /* WEATHER */
 async function loadWeather() {
   try {
     const res = await fetch(
-      "https://api.open-meteo.com/v1/forecast?latitude=35.4676&longitude=-97.5164&daily=temperature_2m_max,weathercode&current_weather=true&timezone=auto"
+      "https://api.open-meteo.com/v1/forecast?latitude=35.4676&longitude=-97.5164&daily=temperature_2m_max,temperature_2m_min,weathercode&current_weather=true&timezone=auto"
     );
+
     const data = await res.json();
 
     let c = data.current_weather.temperature;
@@ -154,27 +171,32 @@ async function loadWeather() {
 
     const tempEl = document.getElementById("temp");
     tempEl.innerText = f + "°F";
-    tempEl.style.color = getTempColor(f); // ✅ Color applied
+    tempEl.style.color = getTempColor(f);
 
-    document.getElementById("desc").innerText = "Current Conditions";
     document.getElementById("icon").innerText =
       getIcon(data.current_weather.weathercode);
 
-    /* FORECAST */
+    /* ✅ Forecast with HIGH / LOW */
     let html = "";
 
     data.daily.time.slice(0,5).forEach((day, i) => {
-      let tempF = Math.round((data.daily.temperature_2m_max[i] * 9/5) + 32);
+
+      let highF = Math.round((data.daily.temperature_2m_max[i] * 9/5) + 32);
+      let lowF  = Math.round((data.daily.temperature_2m_min[i] * 9/5) + 32);
+
       let icon = getIcon(data.daily.weathercode[i]);
 
       let label = new Date(day).toLocaleDateString([], { weekday: 'short' });
-      let color = getTempColor(tempF);
+
+      let color = getTempColor(highF);
 
       html += `
         <div class="forecast-day">
           <div>${label}</div>
           <div class="icon">${icon}</div>
-          <div style="color:${color}; font-weight:bold;">${tempF}°</div>
+          <div style="color:${color}; font-weight:bold;">
+            ${highF}° / ${lowF}°
+          </div>
         </div>
       `;
     });
@@ -183,7 +205,6 @@ async function loadWeather() {
 
   } catch (e) {
     document.getElementById("temp").innerText = "72°F";
-    document.getElementById("desc").innerText = "Weather unavailable";
   }
 }
 
