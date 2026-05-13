@@ -12,7 +12,7 @@ body {
   font-family: Arial, sans-serif;
 }
 
-/* ✅ balanced logo placement for TVs */
+/* ✅ fixed + properly aligned logo */
 .logo {
   position: absolute;
   top: 35px;
@@ -43,7 +43,6 @@ body {
 }
 
 .city { font-size: 40px; opacity: 0.8; }
-
 .desc { font-size: 28px; margin-top: 10px; }
 
 .current-icon { font-size: 75px; }
@@ -79,7 +78,6 @@ body {
   margin-top: 5px;
 }
 
-/* ✅ clearly visible alert */
 .alert {
   margin-top: 20px;
   font-size: 34px;
@@ -98,11 +96,11 @@ body {
 
 <body>
 
-logo.png
+<!-- ✅ FIXED logo -->
+<img src="logo.png" class="logo">
 
 <div class="container">
 
-  <!-- LEFT -->
   <div class="weather">
 
     <div class="city">Oklahoma City</div>
@@ -121,7 +119,6 @@ logo.png
 
   </div>
 
-  <!-- RIGHT -->
   <div class="side">
     <div>
       <div id="clock" class="clock"></div>
@@ -130,9 +127,7 @@ logo.png
 
     <div class="notice">
       <div>Welcome to the Homeless Alliance</div>
-
       <div style="height:20px;"></div>
-
       <div style="color:#ffd166; font-weight:bold;">
         Day Shelter Hours: 7:00 AM - 3:00 PM
       </div>
@@ -143,21 +138,13 @@ logo.png
 
 <script>
 
-/* ✅ REFINED ICON SET — ALL SAFE */
 function getIcon(code) {
-
   if (code === 0) return "☀️";
   if (code <= 2) return "🌤️";
-
   if (code <= 45) return "☁️";
 
-  /* ✅ SAFE rain representation */
   if (code >= 51 && code <= 67) return "☁️💧";
-
-  /* snow */
   if (code >= 71 && code <= 77) return "❄️";
-
-  /* storms */
   if (code >= 95) return "☁️⚡";
 
   return "🌤️";
@@ -200,7 +187,6 @@ async function loadWeather() {
 
       let icon = getIcon(code);
 
-      /* ✅ prevent misleading storms */
       if (code >= 95 && rain < 25) {
         icon = rain > 10 ? "☁️💧" : "☁️";
       }
@@ -210,11 +196,13 @@ async function loadWeather() {
 
       let label = new Date(day).toLocaleDateString([], { weekday: 'short' });
 
-      let rainDisplay = rain >= 15
-        ? `<div class="rain" style="color:#7fc8f8;">${rain}%</div>`
-        : "";
+      /* ✅ ALWAYS show rain % */
+      let rainDisplay = `
+        <div class="rain" style="color:${rain >= 15 ? '#7fc8f8' : 'rgba(255,255,255,0.5)'};">
+          ${rain}%
+        </div>
+      `;
 
-      /* ✅ ALERT logic */
       if (rain >= 25 && i > 0) {
         alertText = "Rain Possible " + label;
       }
@@ -240,7 +228,6 @@ async function loadWeather() {
   }
 }
 
-/* CLOCK */
 function updateClock() {
   const now = new Date();
 
@@ -261,4 +248,3 @@ setInterval(updateClock, 60000);
 
 </body>
 </html>
-``
