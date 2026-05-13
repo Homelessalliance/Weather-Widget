@@ -194,7 +194,16 @@ async function loadWeather() {
       let high = Math.round((data.daily.temperature_2m_max[i] * 9/5) + 32);
       let low  = Math.round((data.daily.temperature_2m_min[i] * 9/5) + 32);
 
-      let icon = getIcon(data.daily.weathercode[i]);
+let baseCode = data.daily.weathercode[i];
+let rain = data.daily.precipitation_probability_max[i];
+
+let icon = getIcon(baseCode);
+
+/* ✅ OVERRIDE: prevent false storms */
+if (baseCode >= 95 && rain < 25) {
+  icon = "☁️"; // or "🌤️" if you prefer
+}
+``
       let rain = data.daily.precipitation_probability_max[i];
 
       let label = new Date(day).toLocaleDateString([], { weekday: 'short' });
