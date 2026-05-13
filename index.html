@@ -49,9 +49,7 @@ body {
   opacity: 0.9;
 }
 
-.current-icon {
-  font-size: 75px;
-}
+.current-icon { font-size: 75px; }
 
 .temp {
   font-size: 140px;
@@ -77,9 +75,7 @@ body {
   min-width: 90px;
 }
 
-.icon {
-  font-size: 26px;
-}
+.icon { font-size: 26px; }
 
 .rain {
   font-size: 18px;
@@ -89,9 +85,7 @@ body {
 .clock { font-size: 48px; font-weight: bold; }
 .date { font-size: 28px; opacity: 0.8; }
 
-.notice {
-  font-size: 32px;
-}
+.notice { font-size: 32px; }
 </style>
 </head>
 
@@ -140,21 +134,15 @@ body {
 
 <script>
 
-/* ✅ FIXED ICON LOGIC */
+/* ✅ ICON BASE LOGIC */
 function getIcon(code) {
-
   if (code === 0) return "☀️";
   if (code <= 2) return "🌤️";
-
   if (code <= 45) return "☁️";
 
-  /* ✅ light to moderate rain only */
   if (code >= 51 && code <= 67) return "🌧️";
-
-  /* snow */
   if (code >= 71 && code <= 77) return "🌨️";
 
-  /* ✅ ONLY real thunderstorms */
   if (code >= 95) return "⛈️";
 
   return "🌤️";
@@ -191,25 +179,23 @@ async function loadWeather() {
 
     data.daily.time.slice(0,5).forEach((day, i) => {
 
+      let baseCode = data.daily.weathercode[i];
+      let rain = data.daily.precipitation_probability_max[i];
+
+      let icon = getIcon(baseCode);
+
+      /* ✅ FINAL FIX — prevent false storms */
+      if (baseCode >= 95 && rain < 25) {
+        icon = rain > 10 ? "🌧️" : "☁️";
+      }
+
       let high = Math.round((data.daily.temperature_2m_max[i] * 9/5) + 32);
       let low  = Math.round((data.daily.temperature_2m_min[i] * 9/5) + 32);
-
-let baseCode = data.daily.weathercode[i];
-let rain = data.daily.precipitation_probability_max[i];
-
-let icon = getIcon(baseCode);
-
-/* ✅ OVERRIDE: prevent false storms */
-if (baseCode >= 95 && rain < 25) {
-  icon = "☁️"; // or "🌤️" if you prefer
-}
-``
-      let rain = data.daily.precipitation_probability_max[i];
 
       let label = new Date(day).toLocaleDateString([], { weekday: 'short' });
       let color = getTempColor(high);
 
-      /* ✅ BONUS FIX: only show meaningful rain + color it blue */
+      /* ✅ CLEAN rain display */
       let rainDisplay = rain >= 15
         ? `<div class="rain" style="color:#7fc8f8;">${rain}%</div>`
         : "";
@@ -230,7 +216,7 @@ if (baseCode >= 95 && rain < 25) {
     document.getElementById("forecast").innerHTML = html;
 
   } catch (e) {
-    document.getElementById("temp").innerText = "72°F";
+    document.getElementById("temp").innerText = "--°F";
   }
 }
 
