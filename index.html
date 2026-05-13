@@ -12,7 +12,7 @@ body {
   font-family: Arial, sans-serif;
 }
 
-/* ✅ fixed + properly aligned logo */
+/* ✅ logo positioned safely and cleanly */
 .logo {
   position: absolute;
   top: 35px;
@@ -78,9 +78,10 @@ body {
   margin-top: 5px;
 }
 
+/* ✅ improved alert visibility */
 .alert {
-  margin-top: 20px;
-  font-size: 34px;
+  margin-top: 15px;
+  font-size: 36px;
   font-weight: bold;
   color: #7fc8f8;
   text-align: center;
@@ -96,7 +97,7 @@ body {
 
 <body>
 
-<!-- ✅ FIXED logo -->
+<!-- ✅ correct logo tag -->
 <img src="logo.png" class="logo">
 
 <div class="container">
@@ -138,15 +139,14 @@ body {
 
 <script>
 
+/* ✅ safe icon logic */
 function getIcon(code) {
   if (code === 0) return "☀️";
   if (code <= 2) return "🌤️";
   if (code <= 45) return "☁️";
-
   if (code >= 51 && code <= 67) return "☁️💧";
   if (code >= 71 && code <= 77) return "❄️";
   if (code >= 95) return "☁️⚡";
-
   return "🌤️";
 }
 
@@ -187,6 +187,7 @@ async function loadWeather() {
 
       let icon = getIcon(code);
 
+      /* ✅ prevent misleading storms */
       if (code >= 95 && rain < 25) {
         icon = rain > 10 ? "☁️💧" : "☁️";
       }
@@ -203,7 +204,14 @@ async function loadWeather() {
         </div>
       `;
 
-      if (rain >= 25 && i > 0) {
+      /* ✅ NEW SMART ALERT LOGIC */
+      if (rain >= 40 && i > 0) {
+        alertText = "Heavy Rain Likely " + label;
+      }
+      else if (rain >= 20 && i > 0) {
+        alertText = "Rain Likely " + label;
+      }
+      else if (rain >= 15 && i > 0) {
         alertText = "Rain Possible " + label;
       }
 
