@@ -46,7 +46,6 @@ body {
 /* Weather */
 .city { font-size: 40px; opacity: 0.8; }
 
-/* ✅ moved current conditions */
 .desc {
   font-size: 28px;
   margin-top: 10px;
@@ -63,6 +62,13 @@ body {
   margin-top: 10px;
 }
 
+/* ✅ NEW wind line */
+.wind {
+  font-size: 24px;
+  margin-top: 10px;
+  opacity: 0.8;
+}
+
 /* Forecast */
 .forecast {
   display: flex;
@@ -73,10 +79,18 @@ body {
 .forecast-day {
   text-align: center;
   font-size: 22px;
+  min-width: 90px;
 }
 
 .icon {
   font-size: 26px;
+}
+
+/* ✅ rain % */
+.rain {
+  font-size: 18px;
+  opacity: 0.7;
+  margin-top: 5px;
 }
 
 /* Clock */
@@ -101,13 +115,15 @@ body {
 
     <div class="city">Oklahoma City</div>
 
-    <!-- ✅ moved here -->
     <div class="desc">Current Conditions</div>
 
     <div style="display:flex; align-items:center; gap:25px;">
       <div id="icon" class="current-icon">☀️</div>
       <div id="temp" class="temp">--°F</div>
     </div>
+
+    <!-- ✅ wind goes here -->
+    <div id="wind" class="wind"></div>
 
     <div id="forecast" class="forecast"></div>
 
@@ -137,19 +153,19 @@ body {
 
 <script>
 
-/* ✅ Improved icon logic (includes storms) */
+/* ICON LOGIC */
 function getIcon(code) {
-  if (code === 0) return "☀️";              // clear
-  if (code <= 3) return "🌤️";               // partly cloudy
-  if (code <= 48) return "☁️";              // cloudy
-  if (code <= 67) return "🌧️";              // rain
-  if (code <= 77) return "🌨️";              // snow
-  if (code <= 82) return "🌧️";              // heavier rain
-  if (code <= 99) return "⛈️";              // thunderstorms ✅
+  if (code === 0) return "☀️";
+  if (code <= 3) return "🌤️";
+  if (code <= 48) return "☁️";
+  if (code <= 67) return "🌧️";
+  if (code <= 77) return "🌨️";
+  if (code <= 82) return "🌧️";
+  if (code <= 99) return "⛈️"; // storms ✅
   return "🌤️";
 }
 
-/* ✅ temp color */
+/* TEMP COLOR */
 function getTempColor(tempF) {
   if (tempF < 50) return "#4cc9f0";
   if (tempF < 70) return "#ffffff";
@@ -157,17 +173,15 @@ function getTempColor(tempF) {
   return "#ff6b6b";
 }
 
-/* WEATHER */
 async function loadWeather() {
   try {
     const res = await fetch(
-      "https://api.open-meteo.com/v1/forecast?latitude=35.4676&longitude=-97.5164&daily=temperature_2m_max,temperature_2m_min,weathercode&current_weather=true&timezone=auto"
+      "https://api.open-meteo.com/v1/forecast?latitude=35.4676&longitude=-97.5164&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_probability_max&current_weather=true&timezone=auto"
     );
 
     const data = await res.json();
 
-    let c = data.current_weather.temperature;
-    let f = Math.round((c * 9/5) + 32);
+    let f = Math.round((data.current_weather.temperature * 9/5) + 32);
 
     const tempEl = document.getElementById("temp");
     tempEl.innerText = f + "°F";
@@ -176,27 +190,38 @@ async function loadWeather() {
     document.getElementById("icon").innerText =
       getIcon(data.current_weather.weathercode);
 
-    /* ✅ Forecast with HIGH / LOW */
+    /* ✅ WIND DISPLAY */
+    document.getElementById("wind").innerText =
+      "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
+
+    /* ✅ Forecast */
     let html = "";
 
     data.daily.time.slice(0,5).forEach((day, i) => {
 
-      let highF = Math.round((data.daily.temperature_2m_max[i] * 9/5) + 32);
-      let lowF  = Math.round((data.daily.temperature_2m_min[i] * 9/5) + 32);
+      let high = Math.round((data.daily.temperature_2m_max[i] * 9/5) + 32);
+      let low  = Math.round((data.daily.temperature_2m_min[i] * 9/5) + 32);
 
       let icon = getIcon(data.daily.weathercode[i]);
+      let rain = data.daily.precipitation_probability_max[i];
 
       let label = new Date(day).toLocaleDateString([], { weekday: 'short' });
 
-      let color = getTempColor(highF);
+      let color = getTempColor(high);
 
       html += `
         <div class="forecast-day">
           <div>${label}</div>
           <div class="icon">${icon}</div>
-          <div style="color:${color}; font-weight:bold;">
-            ${highF}° / ${lowF}°
+
+          <div>
+            <span style="color:${color}; font-weight:bold;">
+              ${high}°
+            </span>
+            <span style="opacity:0.7;"> / ${low}°</span>
           </div>
+
+          <div class="rain">${rain}%</div>
         </div>
       `;
     });
