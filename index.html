@@ -12,6 +12,14 @@ body {
   font-family: Arial, sans-serif;
 }
 
+/* LOGO */
+.logo {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  width: 100px;
+}
+
 /* Layout */
 .container {
   display: flex;
@@ -39,110 +47,3 @@ body {
 
 /* Weather styling */
 .city {
-  font-size: 40px;
-  opacity: 0.8;
-}
-
-.temp {
-  font-size: 140px;
-  font-weight: bold;
-}
-
-.desc {
-  font-size: 36px;
-  margin-top: 10px;
-}
-
-.details {
-  font-size: 24px;
-  opacity: 0.8;
-  margin-top: 10px;
-}
-
-/* Clock */
-.clock {
-  font-size: 48px;
-  font-weight: bold;
-}
-
-.date {
-  font-size: 28px;
-  opacity: 0.8;
-}
-
-/* Notice */
-.notice {
-  font-size: 32px;
-}
-</style>
-</head>
-
-<body>
-
-<div class="container">
-
-  <!-- LEFT SIDE -->
-  <div class="weather">
-    <div class="city">Oklahoma City</div>
-    <div id="temp" class="temp">--°F</div>
-    <div id="desc" class="desc">Loading...</div>
-    <div id="details" class="details"></div>
-  </div>
-
-  <!-- RIGHT SIDE -->
-  <div class="side">
-    <div>
-      <div id="clock" class="clock"></div>
-      <div id="date" class="date"></div>
-    </div>
-
-    <div class="notice">
-      Welcome to the Homeless Alliance<br>
-      Please check in at the front desk
-    </div>
-  </div>
-
-</div>
-
-<script>
-/* WEATHER */
-async function loadWeather() {
-  try {
-    const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=35.4676&longitude=-97.5164&current_weather=true");
-    const data = await res.json();
-
-    let c = data.current_weather.temperature;
-    let f = (c * 9/5) + 32;
-
-    document.getElementById("temp").innerText = Math.round(f) + "°F";
-    document.getElementById("desc").innerText = "Current Conditions";
-    document.getElementById("details").innerText =
-      "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
-
-  } catch (e) {
-    document.getElementById("temp").innerText = "72°F";
-    document.getElementById("desc").innerText = "Weather unavailable";
-    document.getElementById("details").innerText = "";
-  }
-}
-
-/* CLOCK */
-function updateClock() {
-  const now = new Date();
-
-  document.getElementById("clock").innerText =
-    now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-  document.getElementById("date").innerText =
-    now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
-}
-
-loadWeather();
-setInterval(loadWeather, 600000);
-
-updateClock();
-setInterval(updateClock, 60000);
-</script>
-
-</body>
-</html>
