@@ -12,11 +12,11 @@ body {
   font-family: Arial, sans-serif;
 }
 
-/* ✅ moved logo away from edge */
+/* ✅ FIXED logo placement for TVs */
 .logo {
   position: absolute;
-  top: 20px;
-  left: 80px;
+  top: 30px;
+  left: 120px;
   width: 160px;
 }
 
@@ -44,10 +44,7 @@ body {
 
 .city { font-size: 40px; opacity: 0.8; }
 
-.desc {
-  font-size: 28px;
-  margin-top: 10px;
-}
+.desc { font-size: 28px; margin-top: 10px; }
 
 .current-icon { font-size: 75px; }
 
@@ -82,19 +79,16 @@ body {
   margin-top: 5px;
 }
 
-/* ✅ new alert text */
 .alert {
   margin-top: 25px;
   font-size: 28px;
   color: #7fc8f8;
 }
 
-/* Clock */
 .clock { font-size: 48px; }
 .date { font-size: 28px; opacity: 0.8; }
 
 .notice { font-size: 32px; }
-
 </style>
 </head>
 
@@ -118,7 +112,6 @@ body {
 
     <div id="forecast" class="forecast"></div>
 
-    <!-- ✅ Rain message -->
     <div id="alert" class="alert"></div>
 
   </div>
@@ -142,7 +135,7 @@ body {
 
 <script>
 
-/* ✅ Updated icon logic with safer storm icon */
+/* ✅ TV-safe icon logic */
 function getIcon(code) {
   if (code === 0) return "☀️";
   if (code <= 2) return "🌤️";
@@ -151,8 +144,8 @@ function getIcon(code) {
   if (code >= 51 && code <= 67) return "🌧️";
   if (code >= 71 && code <= 77) return "🌨️";
 
-  /* ✅ more compatible storm icon */
-  if (code >= 95) return "🌩️";
+  /* ✅ FIX: use reliable combo instead of unsupported emoji */
+  if (code >= 95) return "🌧️⚡";
 
   return "🌤️";
 }
@@ -207,7 +200,6 @@ async function loadWeather() {
         ? `<div class="rain" style="color:#7fc8f8;">${rain}%</div>`
         : "";
 
-      /* ✅ Generate alert */
       if (rain >= 25 && i > 0) {
         alertText = "Rain Possible " + label;
       }
@@ -233,7 +225,6 @@ async function loadWeather() {
   }
 }
 
-/* CLOCK */
 function updateClock() {
   const now = new Date();
 
