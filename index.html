@@ -12,7 +12,6 @@ body {
   font-family: Arial, sans-serif;
 }
 
-/* LOGO */
 .logo {
   position: absolute;
   top: 20px;
@@ -20,7 +19,6 @@ body {
   width: 160px;
 }
 
-/* Layout */
 .container {
   display: flex;
   height: 100vh;
@@ -43,7 +41,6 @@ body {
   padding: 40px;
 }
 
-/* Weather */
 .city { font-size: 40px; opacity: 0.8; }
 
 .desc {
@@ -62,14 +59,12 @@ body {
   margin-top: 10px;
 }
 
-/* ✅ NEW wind line */
 .wind {
   font-size: 24px;
   margin-top: 10px;
   opacity: 0.8;
 }
 
-/* Forecast */
 .forecast {
   display: flex;
   gap: 30px;
@@ -86,18 +81,15 @@ body {
   font-size: 26px;
 }
 
-/* ✅ rain % */
 .rain {
   font-size: 18px;
   opacity: 0.7;
   margin-top: 5px;
 }
 
-/* Clock */
 .clock { font-size: 48px; font-weight: bold; }
 .date { font-size: 28px; opacity: 0.8; }
 
-/* Notice */
 .notice {
   font-size: 32px;
 }
@@ -110,11 +102,9 @@ body {
 
 <div class="container">
 
-  <!-- LEFT -->
   <div class="weather">
 
     <div class="city">Oklahoma City</div>
-
     <div class="desc">Current Conditions</div>
 
     <div style="display:flex; align-items:center; gap:25px;">
@@ -122,14 +112,12 @@ body {
       <div id="temp" class="temp">--°F</div>
     </div>
 
-    <!-- ✅ wind goes here -->
     <div id="wind" class="wind"></div>
 
     <div id="forecast" class="forecast"></div>
 
   </div>
 
-  <!-- RIGHT -->
   <div class="side">
 
     <div>
@@ -153,19 +141,17 @@ body {
 
 <script>
 
-/* ICON LOGIC */
+/* ✅ Improved Icon Logic */
 function getIcon(code) {
   if (code === 0) return "☀️";
-  if (code <= 3) return "🌤️";
-  if (code <= 48) return "☁️";
-  if (code <= 67) return "🌧️";
+  if (code <= 2) return "🌤️";
+  if (code <= 45) return "☁️";
+  if (code <= 63) return "🌧️";
   if (code <= 77) return "🌨️";
-  if (code <= 82) return "🌧️";
-  if (code <= 99) return "⛈️"; // storms ✅
+  if (code >= 95) return "⛈️"; // Only actual storms
   return "🌤️";
 }
 
-/* TEMP COLOR */
 function getTempColor(tempF) {
   if (tempF < 50) return "#4cc9f0";
   if (tempF < 70) return "#ffffff";
@@ -190,11 +176,9 @@ async function loadWeather() {
     document.getElementById("icon").innerText =
       getIcon(data.current_weather.weathercode);
 
-    /* ✅ WIND DISPLAY */
     document.getElementById("wind").innerText =
       "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
-    /* ✅ Forecast */
     let html = "";
 
     data.daily.time.slice(0,5).forEach((day, i) => {
@@ -206,22 +190,20 @@ async function loadWeather() {
       let rain = data.daily.precipitation_probability_max[i];
 
       let label = new Date(day).toLocaleDateString([], { weekday: 'short' });
-
       let color = getTempColor(high);
+
+      // ✅ Hide low rain %
+      let rainDisplay = rain >= 15 ? `<div class="rain">${rain}%</div>` : "";
 
       html += `
         <div class="forecast-day">
           <div>${label}</div>
           <div class="icon">${icon}</div>
-
           <div>
-            <span style="color:${color}; font-weight:bold;">
-              ${high}°
-            </span>
+            <span style="color:${color}; font-weight:bold;">${high}°</span>
             <span style="opacity:0.7;"> / ${low}°</span>
           </div>
-
-          <div class="rain">${rain}%</div>
+          ${rainDisplay}
         </div>
       `;
     });
@@ -233,7 +215,6 @@ async function loadWeather() {
   }
 }
 
-/* CLOCK */
 function updateClock() {
   const now = new Date();
 
@@ -254,4 +235,3 @@ setInterval(updateClock, 60000);
 
 </body>
 </html>
-``
