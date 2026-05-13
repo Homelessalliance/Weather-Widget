@@ -2,37 +2,14 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Dashboard</title>
+<title>Weather</title>
 
 <style>
-.logo {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  width: 120px;
-}
-
-#queueBox {
-  position: absolute;
-  bottom: 40px;
-  right: 60px;
-  text-align: left;
-  max-width: 300px;
-  background: rgba(255, 255, 255, 0.08);
-  padding: 20px;
-  border-radius: 10px;
-}
-
 body {
   margin: 0;
   background: #0b1e3c;
   color: white;
   font-family: Arial, sans-serif;
-}
-
-#queueBox h3 {
-  font-size: 30px;
-  margin-bottom: 10px;
 }
 
 /* Layout */
@@ -102,8 +79,6 @@ body {
 
 <body>
 
-<img src="logo.png" style="position:absolute; top:20px; left:20px; width:80px; height:auto;">
-
 <div class="container">
 
   <!-- LEFT SIDE -->
@@ -116,7 +91,6 @@ body {
 
   <!-- RIGHT SIDE -->
   <div class="side">
-
     <div>
       <div id="clock" class="clock"></div>
       <div id="date" class="date"></div>
@@ -124,20 +98,14 @@ body {
 
     <div class="notice">
       Welcome to the Homeless Alliance<br>
-
-      <div id="queueBox">
-        <h3>Waiting List</h3>
-        <div id="queue">Loading...</div>
-      </div>
-
+      Please check in at the front desk
     </div>
-
   </div>
 
 </div>
 
-<!-- WEATHER + CLOCK -->
 <script>
+/* WEATHER */
 async function loadWeather() {
   try {
     const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=35.4676&longitude=-97.5164&current_weather=true");
@@ -158,6 +126,7 @@ async function loadWeather() {
   }
 }
 
+/* CLOCK */
 function updateClock() {
   const now = new Date();
 
@@ -173,43 +142,6 @@ setInterval(loadWeather, 600000);
 
 updateClock();
 setInterval(updateClock, 60000);
-</script>
-
-<!-- QUEUE -->
-<script>
-fetch('https://homelessalliance.github.io/Weather-Widget/queue.json')
-  .then(response => response.json())
-  .then(data => {
-
-    const queueDiv = document.getElementById("queue");
-    const queueBox = document.getElementById("queueBox");
-
-    if (!queueDiv || !queueBox) return;
-
-    if (data.status === "Not Available") {
-      queueBox.innerHTML = "<h3>Advocate Unavailable</h3><p>Please check back later</p>";
-      return;
-    }
-
-    if (!data.queue || data.queue.length === 0) {
-      queueDiv.innerHTML = "<p>No one waiting</p>";
-      return;
-    }
-
-    let html = "";
-
-    data.queue.forEach(person => {
-      html += `<div style="margin: 10px 0; font-size: 30px;">
-                 ${person.position}. ${person.name}
-               </div>`;
-    });
-
-    queueDiv.innerHTML = html;
-  })
-  .catch(error => {
-    console.error("Queue error:", error);
-    document.getElementById("queue").innerHTML = "<p>Error loading queue</p>";
-  });
 </script>
 
 </body>
