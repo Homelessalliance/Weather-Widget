@@ -12,11 +12,15 @@ body {
   font-family: Arial, sans-serif;
 }
 
+/* ✅ improved logo positioning */
 .logo {
   position: absolute;
-  top: 35px;
-  left: 200px;
-  width: 150px;
+  top: 40px;
+  left: 120px;
+  right: 120px;
+  margin: 0 auto;
+  display: block;
+  width: 180px;
 }
 
 .container {
@@ -58,31 +62,28 @@ body {
   opacity: 0.8;
 }
 
+/* ✅ bigger forecast */
 .forecast {
   display: flex;
-  gap: 40px;
-  margin-top: 45px;
+  gap: 55px;
+  margin-top: 65px;
 }
 
 .forecast-day {
   text-align: center;
-  font-size: 22px;
-  min-width: 95px;
+  font-size: 26px;
+  min-width: 100px;
 }
 
-.icon { font-size: 26px; }
+/* ✅ bigger icons */
+.icon {
+  font-size: 34px;
+}
 
+/* ✅ better rain % visibility */
 .rain {
-  font-size: 18px;
-  margin-top: 5px;
-}
-
-.alert {
-  margin-top: 15px;
-  font-size: 36px;
-  font-weight: bold;
-  color: #7fc8f8;
-  text-align: center;
+  font-size: 20px;
+  margin-top: 6px;
 }
 
 .clock { font-size: 48px; }
@@ -112,8 +113,6 @@ body {
     <div id="wind" class="wind"></div>
 
     <div id="forecast" class="forecast"></div>
-
-    <div id="alert" class="alert"></div>
 
   </div>
 
@@ -174,9 +173,8 @@ async function loadWeather() {
       "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
     let html = "";
-    let alertText = "";
 
-    /* ✅ ONLY CHANGE: start forecast from tomorrow */
+    /* ✅ show only future days */
     data.daily.time.slice(1,6).forEach((day, i) => {
 
       let code = data.daily.weathercode[i+1];
@@ -199,16 +197,6 @@ async function loadWeather() {
         </div>
       `;
 
-      if (rain >= 40 && i > 0) {
-        alertText = "Heavy Rain Likely " + label;
-      }
-      else if (rain >= 20 && i > 0) {
-        alertText = "Rain Likely " + label;
-      }
-      else if (rain >= 15 && i > 0) {
-        alertText = "Rain Possible " + label;
-      }
-
       html += `
         <div class="forecast-day">
           <div>${label}</div>
@@ -223,7 +211,6 @@ async function loadWeather() {
     });
 
     document.getElementById("forecast").innerHTML = html;
-    document.getElementById("alert").innerText = alertText;
 
   } catch (e) {
     document.getElementById("temp").innerText = "--°F";
@@ -250,4 +237,3 @@ setInterval(updateClock, 60000);
 
 </body>
 </html>
-``
