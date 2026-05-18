@@ -12,7 +12,6 @@ body {
   font-family: Arial, sans-serif;
 }
 
-/* ✅ logo positioned safely and cleanly */
 .logo {
   position: absolute;
   top: 35px;
@@ -78,7 +77,6 @@ body {
   margin-top: 5px;
 }
 
-/* ✅ improved alert visibility */
 .alert {
   margin-top: 15px;
   font-size: 36px;
@@ -97,7 +95,6 @@ body {
 
 <body>
 
-<!-- ✅ correct logo tag -->
 <img src="logo.png" class="logo">
 
 <div class="container">
@@ -139,7 +136,6 @@ body {
 
 <script>
 
-/* ✅ safe icon logic */
 function getIcon(code) {
   if (code === 0) return "☀️";
   if (code <= 2) return "🌤️";
@@ -180,31 +176,29 @@ async function loadWeather() {
     let html = "";
     let alertText = "";
 
-    data.daily.time.slice(0,5).forEach((day, i) => {
+    /* ✅ ONLY CHANGE: start forecast from tomorrow */
+    data.daily.time.slice(1,6).forEach((day, i) => {
 
-      let code = data.daily.weathercode[i];
-      let rain = data.daily.precipitation_probability_max[i];
+      let code = data.daily.weathercode[i+1];
+      let rain = data.daily.precipitation_probability_max[i+1];
 
       let icon = getIcon(code);
 
-      /* ✅ prevent misleading storms */
       if (code >= 95 && rain < 25) {
         icon = rain > 10 ? "☁️💧" : "☁️";
       }
 
-      let high = Math.round((data.daily.temperature_2m_max[i] * 9/5) + 32);
-      let low  = Math.round((data.daily.temperature_2m_min[i] * 9/5) + 32);
+      let high = Math.round((data.daily.temperature_2m_max[i+1] * 9/5) + 32);
+      let low  = Math.round((data.daily.temperature_2m_min[i+1] * 9/5) + 32);
 
       let label = new Date(day).toLocaleDateString([], { weekday: 'short' });
 
-      /* ✅ ALWAYS show rain % */
       let rainDisplay = `
         <div class="rain" style="color:${rain >= 15 ? '#7fc8f8' : 'rgba(255,255,255,0.5)'};">
           ${rain}%
         </div>
       `;
 
-      /* ✅ NEW SMART ALERT LOGIC */
       if (rain >= 40 && i > 0) {
         alertText = "Heavy Rain Likely " + label;
       }
@@ -256,3 +250,4 @@ setInterval(updateClock, 60000);
 
 </body>
 </html>
+``
