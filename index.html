@@ -62,7 +62,7 @@ body {
 
 .icon { font-size: 36px; }
 
-/* ✅ Rain % blue */
+/* Rain % blue */
 .rain {
   font-size: 22px;
   color: #7fc8f8;
@@ -74,37 +74,42 @@ body {
   background: #132f5e;
   display: flex;
   flex-direction: column;
-  padding: 40px;
+
+  /* ✅ Slightly more top padding for TV overscan safety */
+  padding: 55px 40px 40px 40px;
 }
 
-/* top: centered time/date */
+/* ✅ Time/date centered and lowered */
 .side-top {
   text-align: center;
+
+  /* ✅ This is the main "lower it" control */
+  padding-top: 20px;   /* try 30-45 if your TV crops more */
 }
 
-/* ✅ Larger time/date */
+/* Larger time/date */
 .clock { font-size: 64px; font-weight: bold; }
 .date  { font-size: 34px; opacity: 0.9; }
 
-/* middle: logo between top and bottom */
+/* Middle: logo vertically centered between top and bottom */
 .side-middle {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
 
-  /* ✅ pushes logo down a bit so it doesn't hug the time/date */
+  /* Keeps logo centered visually */
   padding-top: 35px;
   padding-bottom: 35px;
 }
 
-/* ✅ Larger logo */
+/* Larger logo */
 .logo {
   width: 250px;
   display: block;
 }
 
-/* bottom: welcome message */
+/* Bottom welcome message */
 .notice {
   font-size: 32px;
 }
@@ -168,7 +173,6 @@ function getTempColor(tempF) {
   return "#ff6b6b";
 }
 
-/* ✅ Get YYYY-MM-DD in a specific timezone */
 function getTodayKeyInTZ(tz) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: tz,
@@ -183,9 +187,7 @@ function getTodayKeyInTZ(tz) {
   return `${y}-${m}-${d}`;
 }
 
-/* ✅ Fix weekday label shift: parse date as LOCAL NOON and format in DISPLAY_TZ */
 function weekdayFromISO(dateStr, tz) {
-  // Using "T12:00:00" prevents UTC-midnight rollback issues
   const safeDate = new Date(dateStr + "T12:00:00");
   return new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: tz }).format(safeDate);
 }
@@ -197,7 +199,6 @@ async function loadWeather() {
     );
     const data = await res.json();
 
-    // Current conditions
     const tempF = Math.round((data.current_weather.temperature * 9/5) + 32);
     document.getElementById("temp").innerText = tempF + "°F";
     document.getElementById("temp").style.color = getTempColor(tempF);
@@ -205,7 +206,6 @@ async function loadWeather() {
     document.getElementById("wind").innerText =
       "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
-    // Forecast starts on real local today
     const todayKey = getTodayKeyInTZ(DISPLAY_TZ);
     let startIndex = data.daily.time.indexOf(todayKey);
     if (startIndex < 0) startIndex = 0;
@@ -217,9 +217,7 @@ async function loadWeather() {
       const high = Math.round((data.daily.temperature_2m_max[i] * 9/5) + 32);
       const low  = Math.round((data.daily.temperature_2m_min[i] * 9/5) + 32);
 
-      // ✅ Correct weekday label (no more Tue/Wed shift)
       const label = weekdayFromISO(data.daily.time[i], DISPLAY_TZ);
-
       const className = (i === startIndex) ? "forecast-day today" : "forecast-day";
 
       html += `
@@ -231,7 +229,6 @@ async function loadWeather() {
         </div>
       `;
     }
-
     document.getElementById("forecast").innerHTML = html;
 
   } catch (e) {
@@ -239,7 +236,6 @@ async function loadWeather() {
   }
 }
 
-/* Clock/date centered in right column, forced to OKC timezone */
 function updateClock() {
   const now = new Date();
   document.getElementById("clock").innerText =
