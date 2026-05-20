@@ -10,11 +10,7 @@ body {
   color: white;
   font-family: Arial, sans-serif;
 }
-
-.container {
-  display: flex;
-  height: 100vh;
-}
+.container { display: flex; height: 100vh; }
 
 /* LEFT PANEL */
 .weather {
@@ -24,7 +20,6 @@ body {
   align-items: center;
   justify-content: center;
 }
-
 .city { font-size: 50px; }
 .desc { font-size: 28px; margin-top: 8px; }
 
@@ -34,23 +29,12 @@ body {
   gap: 30px;
   margin-top: 30px;
 }
-
-/* current icon is now an IMG */
-.current-icon-img {
-  width: 96px;
-  height: 96px;
-}
-
+.current-icon-img { width: 96px; height: 96px; }
 .temp { font-size: 160px; font-weight: bold; }
 .wind { margin-top: 10px; font-size: 26px; opacity: 0.85; }
 
 /* FORECAST */
-.forecast {
-  display: flex;
-  gap: 60px;
-  margin-top: 70px;
-}
-
+.forecast { display: flex; gap: 60px; margin-top: 70px; }
 .forecast-day {
   text-align: center;
   font-size: 28px;
@@ -58,25 +42,15 @@ body {
   padding: 12px;
   border-radius: 12px;
 }
-
 .forecast-day.today {
   background: rgba(255,255,255,0.08);
   border: 2px solid #7fc8f8;
   transform: scale(1.05);
 }
-
-/* forecast icon is now an IMG */
-.forecast-icon-img {
-  width: 56px;
-  height: 56px;
-  margin: 6px 0;
-}
+.forecast-icon-img { width: 56px; height: 56px; margin: 6px 0; }
 
 /* Rain % blue */
-.rain {
-  font-size: 22px;
-  color: #7fc8f8;
-}
+.rain { font-size: 22px; color: #7fc8f8; }
 
 /* RIGHT PANEL */
 .side {
@@ -86,14 +60,9 @@ body {
   flex-direction: column;
   padding: 55px 40px 40px 40px;
 }
-
-.side-top {
-  text-align: center;
-  padding-top: 20px;
-}
-
+.side-top { text-align: center; padding-top: 20px; }
 .clock { font-size: 64px; font-weight: bold; }
-.date  { font-size: 34px; opacity: 0.9; }
+.date { font-size: 34px; opacity: 0.9; }
 
 .side-middle {
   flex: 1;
@@ -103,15 +72,9 @@ body {
   padding-top: 35px;
   padding-bottom: 35px;
 }
+.logo { width: 250px; display: block; }
 
-.logo {
-  width: 250px;
-  display: block;
-}
-
-.notice {
-  font-size: 32px;
-}
+.notice { font-size: 32px; }
 </style>
 </head>
 
@@ -140,7 +103,7 @@ body {
     </div>
 
     <div class="side-middle">
-      <img src="logo.png" class="logo" alt="Homeless Alliance Logo">
+      logo.png
     </div>
 
     <div class="notice">
@@ -156,41 +119,35 @@ body {
 <script>
 const DISPLAY_TZ = "America/Chicago";
 
-/**
- * Meteocons CDN usage is documented with URLs like:
- * https://cdn.meteocons.com/latest/svg/fill/clear-day.svg
- * (style can be fill / flat / line / monochrome)
- */
-const METEOCONS_STYLE = "fill"; // try "flat" if you want less gradient
-const METEOCONS_BASE  = `https://cdn.meteocons.com/latest/svg/${METEOCONS_STYLE}`;
+/*
+Meteocons CDN documented usage example:
+https://cdn.meteocons.com/latest/svg/fill/clear-day.svg
+(style can be fill / flat / line / monochrome)
+*/
+const METEOCONS_STYLE = "fill";
+const METEOCONS_BASE  = `https://cdn.meteocons.com/latest/svg/${METEOCONS_STYLE}`; /* [2](https://www.vecteezy.com/vector-art/31895185-thunderstorm-vector-icon) */
 
-/**
- * Map Open-Meteo weather codes to Meteocons icon slugs.
- * (Meteocons docs/examples show slugs like clear-day, rain, drizzle, thunderstorms-rain, etc.)
- */
 function meteoconsSlugFromCode(code) {
-  // Open-Meteo weathercode reference grouping (simplified for signage)
+  // Open-Meteo weathercode mapping (simple signage-focused)
   if (code === 0) return "clear-day";
   if (code === 1 || code === 2) return "partly-cloudy-day";
-  if (code === 3) return "overcast";
+  if (code === 3) return "cloudy";
 
-  // Fog
   if (code === 45 || code === 48) return "fog";
 
-  // Drizzle (51/53/55) and Freezing drizzle (56/57)
+  // Drizzle 51–57
   if (code >= 51 && code <= 57) return "drizzle";
 
-  // Rain (61/63/65), Freezing rain (66/67), Showers (80/81/82)
+  // Rain 61–67 + showers 80–82
   if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return "rain";
 
-  // Snow (71/73/75), Snow grains (77), Snow showers (85/86)
+  // Snow 71–77 + snow showers 85–86
   if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) return "snow";
 
-  // Thunderstorms (95/96/99)
-  if (code >= 95) return "thunderstorms";
+  // Thunderstorms 95–99 (docs example includes thunderstorms-rain slug)
+  if (code >= 95) return "thunderstorms-rain"; /* [3](https://deepwiki.com/google/material-design-icons) */
 
-  // Default fallback
-  return "overcast";
+  return "cloudy";
 }
 
 function meteoconsUrl(code) {
@@ -233,29 +190,29 @@ async function loadWeather() {
 
     // Current conditions
     const tempF = Math.round((data.current_weather.temperature * 9/5) + 32);
+    const iconEl = document.getElementById("icon");
+
     document.getElementById("temp").innerText = tempF + "°F";
     document.getElementById("temp").style.color = getTempColor(tempF);
 
-    // ✅ Meteocons current icon (with a safe fallback if a slug ever 404s)
-    const iconEl = document.getElementById("icon");
     iconEl.src = meteoconsUrl(data.current_weather.weathercode);
-    iconEl.onerror = () => { iconEl.src = `${METEOCONS_BASE}/overcast.svg`; };
+    iconEl.onerror = () => { iconEl.src = `${METEOCONS_BASE}/cloudy.svg`; };
 
     document.getElementById("wind").innerText =
       "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
-    // Forecast starts on real local today
+    // Forecast start
     const todayKey = getTodayKeyInTZ(DISPLAY_TZ);
     let startIndex = data.daily.time.indexOf(todayKey);
     if (startIndex < 0) startIndex = 0;
 
+    // Forecast tiles
     let html = "";
     for (let i = startIndex; i < Math.min(startIndex + 5, data.daily.time.length); i++) {
       const code = data.daily.weathercode[i];
       const rain = data.daily.precipitation_probability_max[i];
       const high = Math.round((data.daily.temperature_2m_max[i] * 9/5) + 32);
       const low  = Math.round((data.daily.temperature_2m_min[i] * 9/5) + 32);
-
       const label = weekdayFromISO(data.daily.time[i], DISPLAY_TZ);
       const className = (i === startIndex) ? "forecast-day today" : "forecast-day";
 
@@ -264,8 +221,13 @@ async function loadWeather() {
       html += `
         <div class="${className}">
           <div>${label}</div>
-          <img class="forecast-icon-img" src="${iconUrl}" alt="Forecast icon"
-               onerror="this.src='${METEOCONS_BASE}/overcast.svg';"forecast").innerHTML = html;
+          ${iconUrl}
+          <div><span style="color:#ffd166;">${high}°</span> / ${low}°</div>
+          <div class="rain">${rain}%</div>
+        </div>
+      `;
+    }
+    document.getElementById("forecast").innerHTML = html;
 
   } catch (e) {
     document.getElementById("temp").innerText = "--°F";
@@ -276,17 +238,14 @@ function updateClock() {
   const now = new Date();
   document.getElementById("clock").innerText =
     now.toLocaleTimeString([], { timeZone: DISPLAY_TZ, hour: "2-digit", minute: "2-digit" });
-
   document.getElementById("date").innerText =
     now.toLocaleDateString([], { timeZone: DISPLAY_TZ, weekday: "long", month: "long", day: "numeric" });
 }
 
 loadWeather();
 setInterval(loadWeather, 600000);
-
 updateClock();
 setInterval(updateClock, 60000);
 </script>
-
 </body>
 </html>
