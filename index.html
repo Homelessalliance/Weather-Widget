@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Dashboard</title>
-
 <style>
 body {
   margin: 0;
@@ -72,7 +71,7 @@ body {
   border-radius: 12px;
 }
 
-/* ✅ Highlight today */
+/* Highlight today */
 .forecast-day.today {
   background: rgba(255,255,255,0.08);
   border: 2px solid #7fc8f8;
@@ -83,8 +82,10 @@ body {
   font-size: 36px;
 }
 
+/* ✅ Make all rain % blue */
 .rain {
   font-size: 22px;
+  color: #7fc8f8;
 }
 
 /* RIGHT PANEL */
@@ -97,6 +98,11 @@ body {
   padding: 40px;
 }
 
+/* ✅ Center top section */
+.side-top {
+  text-align: center;
+}
+
 .clock {
   font-size: 52px;
   font-weight: bold;
@@ -107,27 +113,24 @@ body {
   opacity: 0.85;
 }
 
-/* ✅ LOGO FIXED */
+/* ✅ Center logo between time/date and welcome */
 .logo {
   width: 200px;
-  margin: 30px auto;
   display: block;
+  margin: 28px auto 0 auto;
 }
 
 .notice {
   font-size: 32px;
 }
-
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
   <!-- LEFT -->
   <div class="weather">
-
     <div class="city">Oklahoma City</div>
     <div class="desc">Current Conditions</div>
 
@@ -137,20 +140,15 @@ body {
     </div>
 
     <div id="wind" class="wind"></div>
-
     <div id="forecast" class="forecast"></div>
-
   </div>
 
   <!-- RIGHT -->
   <div class="side">
-
-    <div>
+    <div class="side-top">
       <div id="clock" class="clock"></div>
       <div id="date" class="date"></div>
-
-      <!-- ✅ FIXED LOGO TAG -->
-      <img src="logo.png" class="logo">
+      <img src="logo.png" class="logo" alt="Homeless Alliance Logo">
     </div>
 
     <div class="notice">
@@ -159,13 +157,11 @@ body {
         Day Shelter Hours: 7:00 AM - 3:00 PM
       </div>
     </div>
-
   </div>
 
 </div>
 
 <script>
-
 function getIcon(code) {
   if (code === 0) return "☀️";
   if (code <= 2) return "🌤️";
@@ -184,40 +180,36 @@ function getTempColor(tempF) {
 
 async function loadWeather() {
   try {
-
     const res = await fetch(
       "https://api.open-meteo.com/v1/forecast?latitude=35.4676&longitude=-97.5164&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_probability_max&current_weather=true&timezone=auto"
     );
-
     const data = await res.json();
 
+    // Current conditions
     let tempF = Math.round((data.current_weather.temperature * 9/5) + 32);
-
     document.getElementById("temp").innerText = tempF + "°F";
     document.getElementById("temp").style.color = getTempColor(tempF);
-
-    document.getElementById("icon").innerText =
-      getIcon(data.current_weather.weathercode);
-
+    document.getElementById("icon").innerText = getIcon(data.current_weather.weathercode);
     document.getElementById("wind").innerText =
       "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
-    /* ✅ FIND TODAY INDEX */
-    let today = new Date().toISOString().split("T")[0];
+    // ✅ FIX: determine "today" based on API current_weather time (local to timezone=auto)
+    let today = (data.current_weather.time || "").split("T")[0];
     let startIndex = data.daily.time.indexOf(today);
 
+    // Fallback if for some reason it doesn't match
+    if (startIndex < 0) startIndex = 0;
+
+    // Build 5-day forecast starting from today
     let html = "";
-
-    for (let i = startIndex; i < startIndex + 5; i++) {
-
+    for (let i = startIndex; i < Math.min(startIndex + 5, data.daily.time.length); i++) {
       let code = data.daily.weathercode[i];
       let rain = data.daily.precipitation_probability_max[i];
       let high = Math.round((data.daily.temperature_2m_max[i] * 9/5) + 32);
       let low  = Math.round((data.daily.temperature_2m_min[i] * 9/5) + 32);
 
       let label = new Date(data.daily.time[i]).toLocaleDateString([], { weekday: 'short' });
-
-      let className = i === startIndex ? "forecast-day today" : "forecast-day";
+      let className = (i === startIndex) ? "forecast-day today" : "forecast-day";
 
       html += `
         <div class="${className}">
@@ -228,32 +220,27 @@ async function loadWeather() {
         </div>
       `;
     }
-
     document.getElementById("forecast").innerHTML = html;
 
-  } catch {
+  } catch (e) {
     document.getElementById("temp").innerText = "--°F";
   }
 }
 
-/* CLOCK */
+/* CLOCK (right panel) */
 function updateClock() {
   const now = new Date();
-
   document.getElementById("clock").innerText =
     now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
   document.getElementById("date").innerText =
     now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
 loadWeather();
 setInterval(loadWeather, 600000);
+
 updateClock();
 setInterval(updateClock, 60000);
-
 </script>
-
 </body>
 </html>
-``
