@@ -16,6 +16,7 @@ body {
  height: 100vh;
 }
 
+/* LEFT */
 .weather {
  flex: 2;
  display: flex;
@@ -34,14 +35,12 @@ body {
  margin-top: 30px;
 }
 
-/* ✅ SVG styling */
+/* ✅ SVG style */
 .current-icon img {
  width: 80px;
  height: 80px;
  filter: brightness(0) invert(1);
 }
-
-.current-icon { font-size: 80px; }
 
 .temp {
  font-size: 160px;
@@ -54,6 +53,7 @@ body {
  opacity: 0.85;
 }
 
+/* FORECAST */
 .forecast {
  display: flex;
  gap: 60px;
@@ -74,7 +74,11 @@ body {
  transform: scale(1.05);
 }
 
-.icon { font-size: 36px; }
+.icon img {
+ width: 40px;
+ height: 40px;
+ filter: brightness(0) invert(1);
+}
 
 .rain {
  font-size: 22px;
@@ -108,7 +112,6 @@ body {
 .logo { width: 250px; }
 
 .notice { font-size: 32px; }
-
 </style>
 </head>
 
@@ -121,10 +124,7 @@ body {
 <div class="desc">Current Conditions</div>
 
 <div class="current-row">
-
-<!-- ✅ SVG will go here -->
 <div id="icon" class="current-icon"></div>
-
 <div id="temp" class="temp">--°F</div>
 </div>
 
@@ -148,7 +148,6 @@ body {
 Day Shelter Hours: 7:00 AM - 3:00 PM
 </div>
 </div>
-
 </div>
 
 </div>
@@ -157,18 +156,8 @@ Day Shelter Hours: 7:00 AM - 3:00 PM
 
 const DISPLAY_TZ = "America/Chicago";
 
-/* ✅ KEEP forecast emojis EXACTLY (no change) */
-function getIcon(code) {
- if (code === 0) return "☀️";
- if (code <= 2) return "🌤️";
- if (code <= 45) return "☁️";
- if (code >= 51 && code <= 67) return "☁️💧";
- if (code >= 95) return "☁️⚡";
- return "🌤️";
-}
-
-/* ✅ SAFE SVG mapping */
-function getCurrentIconFile(code) {
+/* ✅ SVG mapping */
+function getIconFile(code) {
  if (code === 0) return "Sun.svg";
  if (code <= 2) return "Cloud.svg";
  if (code <= 45) return "Cloud.svg";
@@ -192,11 +181,9 @@ function getTodayKeyInTZ(tz) {
   day: "2-digit"
  }).formatToParts(new Date());
 
- const y = parts.find(p => p.type === "year").value;
- const m = parts.find(p => p.type === "month").value;
- const d = parts.find(p => p.type === "day").value;
-
- return y + "-" + m + "-" + d;
+ return parts.find(p=>p.type==="year").value + "-" +
+        parts.find(p=>p.type==="month").value + "-" +
+        parts.find(p=>p.type==="day").value;
 }
 
 function weekdayFromISO(dateStr, tz) {
@@ -209,6 +196,7 @@ function weekdayFromISO(dateStr, tz) {
 
 async function loadWeather() {
  try {
+
   const res = await fetch(
    "https://api.open-meteo.com/v1/forecast?latitude=35.4676&longitude=-97.5164&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_probability_max&current_weather=true&timezone=auto"
   );
@@ -220,10 +208,10 @@ async function loadWeather() {
   document.getElementById("temp").innerText = tempF + "°F";
   document.getElementById("temp").style.color = getTempColor(tempF);
 
-  /* ✅ THIS IS THE SAFE SVG PART */
-  var file = getCurrentIconFile(data.current_weather.weathercode);
+  /* ✅ CURRENT SVG */
+  var currentFile = getIconFile(data.current_weather.weathercode);
   document.getElementById("icon").innerHTML =
-    '<img src="' + file + '">';
+    '<img src="' + currentFile + '">';
 
   document.getElementById("wind").innerText =
     "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
@@ -232,21 +220,22 @@ async function loadWeather() {
   let startIndex = data.daily.time.indexOf(todayKey);
   if (startIndex < 0) startIndex = 0;
 
-  let html = "";
+  var html = "";
 
-  for (let i = startIndex; i < Math.min(startIndex + 5, data.daily.time.length); i++) {
+  for (var i = startIndex; i < Math.min(startIndex + 5, data.daily.time.length); i++) {
 
-   const code = data.daily.weathercode[i];
-   const rain = data.daily.precipitation_probability_max[i];
+   var code = data.daily.weathercode[i];
+   var file = getIconFile(code);
 
-   const high = Math.round((data.daily.temperature_2m_max[i]*9/5)+32);
-   const low  = Math.round((data.daily.temperature_2m_min[i]*9/5)+32);
+   var rain = data.daily.precipitation_probability_max[i];
+   var high = Math.round((data.daily.temperature_2m_max[i]*9/5)+32);
+   var low  = Math.round((data.daily.temperature_2m_min[i]*9/5)+32);
 
-   const label = weekdayFromISO(data.daily.time[i], DISPLAY_TZ);
+   var label = weekdayFromISO(data.daily.time[i], DISPLAY_TZ);
 
    html += '<div class="forecast-day ' + (i===startIndex ? 'today' : '') + '">';
    html += '<div>' + label + '</div>';
-   html += '<div class="icon">' + getIcon(code) + '</div>';
+   html += '<div class="icon"><img src="' + file + '"></div>';
    html += '<div><span style="color:#ffd166;">' + high + '°</span> / ' + low + '°</div>';
    html += '<div class="rain">' + rain + '%</div>';
    html += '</div>';
@@ -280,6 +269,7 @@ function updateClock() {
 
 loadWeather();
 setInterval(loadWeather, 600000);
+
 updateClock();
 setInterval(updateClock, 60000);
 
