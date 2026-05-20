@@ -36,7 +36,13 @@ body {
   margin-top: 30px;
 }
 
-.current-icon { font-size: 80px; }
+/* ✅ ICON IMAGE SIZE */
+.current-icon img {
+  width: 90px;
+  height: 90px;
+  filter: brightness(0) invert(1);
+}
+
 .temp {
   font-size: 160px;
   font-weight: bold;
@@ -66,8 +72,11 @@ body {
   border: 2px solid #7fc8f8;
 }
 
-.icon {
-  font-size: 36px;
+/* ✅ ICON SIZE IN FORECAST */
+.icon img {
+  width: 40px;
+  height: 40px;
+  filter: brightness(0) invert(1);
 }
 
 .rain {
@@ -89,13 +98,8 @@ body {
   padding-top: 20px;
 }
 
-.clock {
-  font-size: 64px;
-}
-
-.date {
-  font-size: 34px;
-}
+.clock { font-size: 64px; }
+.date { font-size: 34px; }
 
 .side-middle {
   flex: 1;
@@ -104,13 +108,9 @@ body {
   justify-content: center;
 }
 
-.logo {
-  width: 250px;
-}
+.logo { width: 250px; }
 
-.notice {
-  font-size: 32px;
-}
+.notice { font-size: 32px; }
 </style>
 </head>
 
@@ -124,7 +124,7 @@ body {
 <div class="desc">Current Conditions</div>
 
 <div class="current-row">
-<div id="icon" class="current-icon">☀️</div>
+<div id="icon" class="current-icon"></div>
 <div id="temp" class="temp">--°F</div>
 </div>
 
@@ -142,7 +142,7 @@ body {
 </div>
 
 <div class="side-middle">
-<img src="logo.png" class="logo" alt="Logo">
+<img src="logo.png" class="logo">
 </div>
 
 <div class="notice">
@@ -158,17 +158,17 @@ Day Shelter Hours: 7:00 AM - 3:00 PM
 
 <script>
 
-/* ✅ ONLY CHANGE: BETTER EMOJIS (no stacking, no breakage) */
-function getIcon(code) {
-  if (code === 0) return "☀️";            // sun
-  if (code <= 2) return "⛅";              // partly cloudy
-  if (code === 3) return "☁️";            // cloudy
+/* ✅ USE YOUR LOCAL SVG FILES */
+function getIconPath(code) {
+  if (code === 0) return "Sun.svg";
+  if (code <= 2) return "Cloud.svg";
+  if (code === 3) return "Cloud.svg";
 
-  if (code >= 51 && code <= 67) return "🌧️";  // ✅ blue rain
-  if (code >= 71 && code <= 77) return "🌨️";  // snow
-  if (code >= 95) return "⛈️";            // ✅ storm
+  if (code >= 51 && code <= 67) return "Rain.svg";
+  if (code >= 71 && code <= 77) return "Snow.svg";
+  if (code >= 95) return "Storm.svg";
 
-  return "⛅";
+  return "Default.svg";
 }
 
 async function loadWeather() {
@@ -183,10 +183,9 @@ async function loadWeather() {
 
     document.getElementById("temp").innerText = tempF + "°F";
 
-    document.getElementById("icon").innerText =
-      getIcon(data.current_weather.weathercode);
-
-    document.getElementById("wind").innerText =
+    /* ✅ CURRENT ICON */
+    document.getElementById("icon").innerHTML =
+      `<img src="${getIconPath(data.current_weather.weathercodewind").innerText =
       "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
     const today = new Date().toLocaleDateString("en-CA");
@@ -212,7 +211,8 @@ async function loadWeather() {
       html += `
         <div class="${className}">
           <div>${label}</div>
-          <div class="icon">${getIcon(code)}</div>
+          <div class="icon">
+            <img src="${getIconPath(code)} </div>
           <div>${high}° / ${low}°</div>
           <div class="rain">${rain}%</div>
         </div>
