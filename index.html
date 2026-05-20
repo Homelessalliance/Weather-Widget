@@ -12,22 +12,12 @@ body {
   font-family: Arial, sans-serif;
 }
 
-/* ✅ improved logo positioning */
-.logo {
-  position: absolute;
-  top: 40px;
-  left: 120px;
-  right: 120px;
-  margin: 0 auto;
-  display: block;
-  width: 180px;
-}
-
 .container {
   display: flex;
   height: 100vh;
 }
 
+/* ✅ LEFT SIDE (bigger + more readable) */
 .weather {
   flex: 2;
   display: flex;
@@ -36,6 +26,55 @@ body {
   justify-content: center;
 }
 
+.city {
+  font-size: 52px;
+  opacity: 0.85;
+}
+
+.desc {
+  font-size: 32px;
+  margin-top: 10px;
+}
+
+.current-icon {
+  font-size: 95px;
+}
+
+.temp {
+  font-size: 180px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.wind {
+  font-size: 28px;
+  margin-top: 12px;
+  opacity: 0.85;
+}
+
+/* ✅ bigger forecast */
+.forecast {
+  display: flex;
+  gap: 65px;
+  margin-top: 80px;
+}
+
+.forecast-day {
+  text-align: center;
+  font-size: 32px;
+  min-width: 110px;
+}
+
+.icon {
+  font-size: 38px;
+}
+
+.rain {
+  font-size: 22px;
+  margin-top: 8px;
+}
+
+/* ✅ RIGHT SIDE */
 .side {
   flex: 1;
   background: #132f5e;
@@ -45,67 +84,43 @@ body {
   padding: 40px;
 }
 
-.city { font-size: 40px; opacity: 0.8; }
-.desc { font-size: 28px; margin-top: 10px; }
-
-.current-icon { font-size: 75px; }
-
-.temp {
-  font-size: 140px;
+/* time */
+.clock {
+  font-size: 56px;
   font-weight: bold;
-  margin-top: 10px;
 }
 
-.wind {
-  font-size: 24px;
-  margin-top: 10px;
-  opacity: 0.8;
+.date {
+  font-size: 32px;
+  opacity: 0.85;
 }
 
-/* ✅ bigger forecast */
-.forecast {
-  display: flex;
-  gap: 55px;
-  margin-top: 65px;
+/* ✅ LOGO (now properly placed) */
+.logo {
+  width: 200px;
+  margin: 30px auto 0 auto;
+  display: block;
 }
 
-.forecast-day {
-  text-align: center;
-  font-size: 26px;
-  min-width: 100px;
-}
-
-/* ✅ bigger icons */
-.icon {
+/* notice */
+.notice {
   font-size: 34px;
 }
-
-/* ✅ better rain % visibility */
-.rain {
-  font-size: 20px;
-  margin-top: 6px;
-}
-
-.clock { font-size: 48px; }
-.date { font-size: 28px; opacity: 0.8; }
-
-.notice { font-size: 32px; }
 
 </style>
 </head>
 
 <body>
 
-<img src="logo.png" class="logo">
-
 <div class="container">
 
+  <!-- LEFT -->
   <div class="weather">
 
     <div class="city">Oklahoma City</div>
     <div class="desc">Current Conditions</div>
 
-    <div style="display:flex; align-items:center; gap:25px;">
+    <div style="display:flex; align-items:center; gap:30px;">
       <div id="icon" class="current-icon">☀️</div>
       <div id="temp" class="temp">--°F</div>
     </div>
@@ -116,19 +131,27 @@ body {
 
   </div>
 
+  <!-- RIGHT -->
   <div class="side">
+
     <div>
       <div id="clock" class="clock"></div>
       <div id="date" class="date"></div>
+
+      <!-- ✅ LOGO MOVED HERE -->
+      <img src="logo.png" class="logo">
     </div>
 
     <div class="notice">
       <div>Welcome to the Homeless Alliance</div>
+
       <div style="height:20px;"></div>
+
       <div style="color:#ffd166; font-weight:bold;">
         Day Shelter Hours: 7:00 AM - 3:00 PM
       </div>
     </div>
+
   </div>
 
 </div>
@@ -174,7 +197,6 @@ async function loadWeather() {
 
     let html = "";
 
-    /* ✅ show only future days */
     data.daily.time.slice(1,6).forEach((day, i) => {
 
       let code = data.daily.weathercode[i+1];
@@ -217,6 +239,7 @@ async function loadWeather() {
   }
 }
 
+/* CLOCK */
 function updateClock() {
   const now = new Date();
 
