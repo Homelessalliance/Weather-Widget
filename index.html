@@ -17,7 +17,6 @@ body {
   height: 100vh;
 }
 
-/* LEFT */
 .weather {
   flex: 2;
   display: flex;
@@ -47,7 +46,7 @@ body {
   margin-top: 8px;
 }
 
-/* ✅ CURRENT ROW */
+/* CURRENT */
 .current-row {
   display: flex;
   align-items: center;
@@ -59,22 +58,6 @@ body {
   font-size: 80px;
 }
 
-/* ✅ TODAY (separate from forecast) */
-.today {
-  text-align: center;
-  font-size: 26px;
-}
-
-.today high {
-  color: #ffd166;
-}
-
-.today .rain {
-  color: #7fc8f8;
-  font-size: 22px;
-}
-
-/* BIG TEMP */
 .temp {
   font-size: 160px;
   font-weight: bold;
@@ -86,17 +69,27 @@ body {
   opacity: 0.85;
 }
 
-/* ✅ FUTURE FORECAST ONLY */
+/* ✅ FORECAST */
 .forecast {
   display: flex;
   gap: 60px;
   margin-top: 70px;
 }
 
+/* ✅ BASE DAY STYLE */
 .forecast-day {
   text-align: center;
   font-size: 28px;
   min-width: 110px;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+/* ✅ CURRENT DAY HIGHLIGHT */
+.forecast-day.today {
+  background: rgba(255,255,255,0.08);
+  border: 2px solid #7fc8f8;
+  transform: scale(1.05);
 }
 
 .icon {
@@ -116,6 +109,18 @@ body {
   justify-content: space-between;
   padding: 40px;
 }
+
+/* ✅ FIXED LOGO */
+.logo {
+  width: 200px;
+  display: block;
+  margin: 30px auto;
+}
+
+.notice {
+  font-size: 32px;
+}
+
 </style>
 </head>
 
@@ -123,9 +128,9 @@ body {
 
 <div class="container">
 
+  <!-- LEFT -->
   <div class="weather">
 
-    <!-- ✅ MOVED TIME HERE -->
     <div id="clock" class="clock"></div>
     <div id="date" class="date"></div>
 
@@ -133,14 +138,8 @@ body {
     <div class="desc">Current Conditions</div>
 
     <div class="current-row">
-
       <div id="icon" class="current-icon">☀️</div>
-
-      <!-- ✅ TODAY CARD -->
-      <div id="today" class="today"></div>
-
       <div id="temp" class="temp">--°F</div>
-
     </div>
 
     <div id="wind" class="wind"></div>
@@ -149,15 +148,21 @@ body {
 
   </div>
 
+  <!-- RIGHT -->
   <div class="side">
-    <div>logo.png</div>
 
-    <div style="font-size:32px;">
-      Welcome to the Homeless Alliance
+    <!-- ✅ REAL LOGO -->
+    <div>
+      <img src="logo.png" class="logo">
+    </div>
+
+    <div class="notice">
+      <div>Welcome to the Homeless Alliance</div>
       <div style="margin-top:20px; color:#ffd166; font-weight:bold;">
         Day Shelter Hours: 7:00 AM - 3:00 PM
       </div>
     </div>
+
   </div>
 
 </div>
@@ -200,33 +205,23 @@ async function loadWeather() {
     document.getElementById("wind").innerText =
       "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
-    /* ✅ TODAY (index 0) */
-    let high = Math.round((data.daily.temperature_2m_max[0] * 9/5) + 32);
-    let low  = Math.round((data.daily.temperature_2m_min[0] * 9/5) + 32);
-    let rain = data.daily.precipitation_probability_max[0];
-
-    document.getElementById("today").innerHTML = `
-      <div>Wed</div>
-      <div><span style="color:#ffd166;">${high}°</span> / ${low}°</div>
-      <div class="rain">${rain}%</div>
-    `;
-
-    /* ✅ FORECAST starts at THURSDAY */
+    /* ✅ FORECAST WITH TODAY INCLUDED */
     let html = "";
 
-    data.daily.time.slice(1,6).forEach((day, i) => {
+    data.daily.time.slice(0,5).forEach((day, i) => {
 
-      let idx = i + 1;
-
-      let code = data.daily.weathercode[idx];
-      let rain = data.daily.precipitation_probability_max[idx];
-      let high = Math.round((data.daily.temperature_2m_max[idx] * 9/5) + 32);
-      let low  = Math.round((data.daily.temperature_2m_min[idx] * 9/5) + 32);
+      let code = data.daily.weathercode[i];
+      let rain = data.daily.precipitation_probability_max[i];
+      let high = Math.round((data.daily.temperature_2m_max[i] * 9/5) + 32);
+      let low  = Math.round((data.daily.temperature_2m_min[i] * 9/5) + 32);
 
       let label = new Date(day).toLocaleDateString([], { weekday: 'short' });
 
+      /* ✅ highlight today (i === 0) */
+      let className = i === 0 ? "forecast-day today" : "forecast-day";
+
       html += `
-        <div class="forecast-day">
+        <div class="${className}">
           <div>${label}</div>
           <div class="icon">${getIcon(code)}</div>
           <div><span style="color:#ffd166;">${high}°</span> / ${low}°</div>
@@ -262,3 +257,4 @@ setInterval(updateClock, 60000);
 
 </body>
 </html>
+``
