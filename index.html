@@ -17,24 +17,13 @@ body {
   height: 100vh;
 }
 
+/* LEFT PANEL */
 .weather {
   flex: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-}
-
-/* ✅ TIME ABOVE CITY */
-.clock {
-  font-size: 44px;
-  font-weight: bold;
-}
-
-.date {
-  font-size: 24px;
-  opacity: 0.85;
-  margin-bottom: 10px;
 }
 
 .city {
@@ -46,7 +35,6 @@ body {
   margin-top: 8px;
 }
 
-/* CURRENT */
 .current-row {
   display: flex;
   align-items: center;
@@ -69,14 +57,13 @@ body {
   opacity: 0.85;
 }
 
-/* ✅ FORECAST */
+/* FORECAST */
 .forecast {
   display: flex;
   gap: 60px;
   margin-top: 70px;
 }
 
-/* ✅ BASE DAY STYLE */
 .forecast-day {
   text-align: center;
   font-size: 28px;
@@ -85,7 +72,7 @@ body {
   border-radius: 12px;
 }
 
-/* ✅ CURRENT DAY HIGHLIGHT */
+/* ✅ Highlight today */
 .forecast-day.today {
   background: rgba(255,255,255,0.08);
   border: 2px solid #7fc8f8;
@@ -110,11 +97,21 @@ body {
   padding: 40px;
 }
 
-/* ✅ FIXED LOGO */
+.clock {
+  font-size: 52px;
+  font-weight: bold;
+}
+
+.date {
+  font-size: 28px;
+  opacity: 0.85;
+}
+
+/* ✅ LOGO FIXED */
 .logo {
   width: 200px;
-  display: block;
   margin: 30px auto;
+  display: block;
 }
 
 .notice {
@@ -130,9 +127,6 @@ body {
 
   <!-- LEFT -->
   <div class="weather">
-
-    <div id="clock" class="clock"></div>
-    <div id="date" class="date"></div>
 
     <div class="city">Oklahoma City</div>
     <div class="desc">Current Conditions</div>
@@ -151,8 +145,11 @@ body {
   <!-- RIGHT -->
   <div class="side">
 
-    <!-- ✅ REAL LOGO -->
     <div>
+      <div id="clock" class="clock"></div>
+      <div id="date" class="date"></div>
+
+      <!-- ✅ FIXED LOGO TAG -->
       <img src="logo.png" class="logo">
     </div>
 
@@ -205,20 +202,22 @@ async function loadWeather() {
     document.getElementById("wind").innerText =
       "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
-    /* ✅ FORECAST WITH TODAY INCLUDED */
+    /* ✅ FIND TODAY INDEX */
+    let today = new Date().toISOString().split("T")[0];
+    let startIndex = data.daily.time.indexOf(today);
+
     let html = "";
 
-    data.daily.time.slice(0,5).forEach((day, i) => {
+    for (let i = startIndex; i < startIndex + 5; i++) {
 
       let code = data.daily.weathercode[i];
       let rain = data.daily.precipitation_probability_max[i];
       let high = Math.round((data.daily.temperature_2m_max[i] * 9/5) + 32);
       let low  = Math.round((data.daily.temperature_2m_min[i] * 9/5) + 32);
 
-      let label = new Date(day).toLocaleDateString([], { weekday: 'short' });
+      let label = new Date(data.daily.time[i]).toLocaleDateString([], { weekday: 'short' });
 
-      /* ✅ highlight today (i === 0) */
-      let className = i === 0 ? "forecast-day today" : "forecast-day";
+      let className = i === startIndex ? "forecast-day today" : "forecast-day";
 
       html += `
         <div class="${className}">
@@ -228,7 +227,7 @@ async function loadWeather() {
           <div class="rain">${rain}%</div>
         </div>
       `;
-    });
+    }
 
     document.getElementById("forecast").innerHTML = html;
 
