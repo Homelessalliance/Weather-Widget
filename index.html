@@ -1,8 +1,8 @@
-<!DOCTYPE html><<html>
+<!DOCTYPE html>
+<html>
 <head>
 <meta charset="UTF-8">
 <title>Dashboard</title>
-
 <style>
 body {
   margin: 0;
@@ -16,6 +16,7 @@ body {
   height: 100vh;
 }
 
+/* LEFT PANEL */
 .weather {
   flex: 2;
   display: flex;
@@ -36,12 +37,9 @@ body {
 
 .current-icon { font-size: 80px; }
 .temp { font-size: 160px; font-weight: bold; }
+.wind { margin-top: 10px; font-size: 26px; opacity: 0.85; }
 
-.wind {
-  margin-top: 10px;
-  font-size: 26px;
-}
-
+/* FORECAST */
 .forecast {
   display: flex;
   gap: 60px;
@@ -53,17 +51,18 @@ body {
   font-size: 28px;
   min-width: 110px;
   padding: 12px;
-}
-
-.forecast-day.today {
-  border: 2px solid #7fc8f8;
   border-radius: 12px;
 }
 
-.icon {
-  font-size: 36px;
+.forecast-day.today {
+  background: rgba(255,255,255,0.08);
+  border: 2px solid #7fc8f8;
+  transform: scale(1.05);
 }
 
+.icon { font-size: 36px; }
+
+/* Rain % blue */
 .rain {
   font-size: 22px;
   color: #7fc8f8;
@@ -75,33 +74,42 @@ body {
   background: #132f5e;
   display: flex;
   flex-direction: column;
+
+  /* ✅ Slightly more top padding for TV overscan safety */
   padding: 55px 40px 40px 40px;
 }
 
+/* ✅ Time/date centered and lowered */
 .side-top {
   text-align: center;
-  padding-top: 20px;
+
+  /* ✅ This is the main "lower it" control */
+  padding-top: 20px;   /* try 30-45 if your TV crops more */
 }
 
-.clock {
-  font-size: 64px;
-}
+/* Larger time/date */
+.clock { font-size: 64px; font-weight: bold; }
+.date  { font-size: 34px; opacity: 0.9; }
 
-.date {
-  font-size: 34px;
-}
-
+/* Middle: logo vertically centered between top and bottom */
 .side-middle {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+
+  /* Keeps logo centered visually */
+  padding-top: 35px;
+  padding-bottom: 35px;
 }
 
+/* Larger logo */
 .logo {
   width: 250px;
+  display: block;
 }
 
+/* Bottom welcome message */
 .notice {
   font-size: 32px;
 }
@@ -109,115 +117,132 @@ body {
 </head>
 
 <body>
-
 <div class="container">
 
-<div class="weather">
+  <!-- LEFT -->
+  <div class="weather">
+    <div class="city">Oklahoma City</div>
+    <div class="desc">Current Conditions</div>
 
-<div class="city">Oklahoma City</div>
-<div class="desc">Current Conditions</div>
+    <div class="current-row">
+      <div id="icon" class="current-icon">☀️</div>
+      <div id="temp" class="temp">--°F</div>
+    </div>
 
-<div class="current-row">
-<div id="icon" class="current-icon">☀️</div>
-<div id="temp" class="temp">--°F</div>
-</div>
+    <div id="wind" class="wind"></div>
+    <div id="forecast" class="forecast"></div>
+  </div>
 
-<div id="wind" class="wind"></div>
+  <!-- RIGHT -->
+  <div class="side">
+    <div class="side-top">
+      <div id="clock" class="clock"></div>
+      <div id="date" class="date"></div>
+    </div>
 
-<div id="forecast" class="forecast"></div>
+    <div class="side-middle">
+      <img src="logo.png" class="logo" alt="Homeless Alliance Logo">
+    </div>
 
-</div>
-
-<div class="side">
-
-<div class="side-top">
-<div id="clock" class="clock"></div>
-<div id="date" class="date"></div>
-</div>
-
-<div class="side-middle">
-logo.png
-</div>
-
-<div class="notice">
-<div>Welcome to the Homeless Alliance</div>
-<div style="margin-top:20px; color:#ffd166; font-weight:bold;">
-Day Shelter Hours: 7:00 AM - 3:00 PM
-</div>
-</div>
-
-</div>
+    <div class="notice">
+      <div>Welcome to the Homeless Alliance</div>
+      <div style="margin-top:20px; color:#ffd166; font-weight:bold;">
+        Day Shelter Hours: 7:00 AM - 3:00 PM
+      </div>
+    </div>
+  </div>
 
 </div>
 
 <script>
+const DISPLAY_TZ = "America/Chicago"; // OKC local time
 
 function getIcon(code) {
   if (code === 0) return "☀️";
   if (code <= 2) return "🌤️";
   if (code <= 45) return "☁️";
-  if (code >= 51 && code <= 67) return "🌧️";
-  if (code >= 95) return "⛈️";
+  if (code >= 51 && code <= 67) return "☁️💧";
+  if (code >= 95) return "☁️⚡";
   return "🌤️";
+}
+
+function getTempColor(tempF) {
+  if (tempF < 50) return "#4cc9f0";
+  if (tempF < 70) return "#ffffff";
+  if (tempF < 85) return "#ffd166";
+  return "#ff6b6b";
+}
+
+function getTodayKeyInTZ(tz) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+
+  const y = parts.find(p => p.type === "year").value;
+  const m = parts.find(p => p.type === "month").value;
+  const d = parts.find(p => p.type === "day").value;
+  return `${y}-${m}-${d}`;
+}
+
+function weekdayFromISO(dateStr, tz) {
+  const safeDate = new Date(dateStr + "T12:00:00");
+  return new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: tz }).format(safeDate);
 }
 
 async function loadWeather() {
   try {
-
     const res = await fetch(
       "https://api.open-meteo.com/v1/forecast?latitude=35.4676&longitude=-97.5164&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_probability_max&current_weather=true&timezone=auto"
     );
-
     const data = await res.json();
 
     const tempF = Math.round((data.current_weather.temperature * 9/5) + 32);
-
     document.getElementById("temp").innerText = tempF + "°F";
-
-    document.getElementById("icon").innerText =
-      getIcon(data.current_weather.weathercode);
-
+    document.getElementById("temp").style.color = getTempColor(tempF);
+    document.getElementById("icon").innerText = getIcon(data.current_weather.weathercode);
     document.getElementById("wind").innerText =
       "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
+    const todayKey = getTodayKeyInTZ(DISPLAY_TZ);
+    let startIndex = data.daily.time.indexOf(todayKey);
+    if (startIndex < 0) startIndex = 0;
+
     let html = "";
-
-    data.daily.time.slice(0,5).forEach((day, i) => {
-
+    for (let i = startIndex; i < Math.min(startIndex + 5, data.daily.time.length); i++) {
       const code = data.daily.weathercode[i];
       const rain = data.daily.precipitation_probability_max[i];
       const high = Math.round((data.daily.temperature_2m_max[i] * 9/5) + 32);
       const low  = Math.round((data.daily.temperature_2m_min[i] * 9/5) + 32);
 
-      const label = new Date(day).toLocaleDateString([], { weekday: 'short' });
-
-      const className = i === 0 ? "forecast-day today" : "forecast-day";
+      const label = weekdayFromISO(data.daily.time[i], DISPLAY_TZ);
+      const className = (i === startIndex) ? "forecast-day today" : "forecast-day";
 
       html += `
         <div class="${className}">
           <div>${label}</div>
           <div class="icon">${getIcon(code)}</div>
-          <div>${high}° / ${low}°</div>
+          <div><span style="color:#ffd166;">${high}°</span> / ${low}°</div>
           <div class="rain">${rain}%</div>
         </div>
       `;
-    });
-
+    }
     document.getElementById("forecast").innerHTML = html;
 
-  } catch {
+  } catch (e) {
     document.getElementById("temp").innerText = "--°F";
   }
 }
 
 function updateClock() {
   const now = new Date();
-
   document.getElementById("clock").innerText =
-    now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    now.toLocaleTimeString([], { timeZone: DISPLAY_TZ, hour: "2-digit", minute: "2-digit" });
 
   document.getElementById("date").innerText =
-    now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+    now.toLocaleDateString([], { timeZone: DISPLAY_TZ, weekday: "long", month: "long", day: "numeric" });
 }
 
 loadWeather();
@@ -225,7 +250,6 @@ setInterval(loadWeather, 600000);
 
 updateClock();
 setInterval(updateClock, 60000);
-
 </script>
 
 </body>
