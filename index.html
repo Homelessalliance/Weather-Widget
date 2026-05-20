@@ -7,17 +7,11 @@
 <style>
 body {
   margin: 0;
-  background: #0b1e3c;
-  color: white;
-  font-family: Arial, sans-serif;
-}
-
-.container {
-  display: flex;
+  background: flex;  background: #0b1e3c;
   height: 100vh;
 }
 
-/* ✅ LEFT SIDE (bigger + more readable) */
+/* LEFT PANEL */
 .weather {
   flex: 2;
   display: flex;
@@ -26,55 +20,89 @@ body {
   justify-content: center;
 }
 
+/* ✅ TIME MOVED LEFT */
+.clock {
+  font-size: 48px;
+  font-weight: bold;
+}
+
 .city {
-  font-size: 52px;
-  opacity: 0.85;
+  font-size: 48px;
+  margin-top: 10px;
 }
 
 .desc {
-  font-size: 32px;
-  margin-top: 10px;
+  font-size: 28px;
+  margin-top: 5px;
+}
+
+/* ✅ CURRENT ROW */
+.current-row {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  margin-top: 20px;
 }
 
 .current-icon {
-  font-size: 95px;
+  font-size: 90px;
 }
 
-.temp {
-  font-size: 180px;
+/* ✅ TODAY DETAILS NEXT TO ICON */
+.today-details {
+  text-align: center;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.today-high {
+  color: #ffd166;
   font-weight: bold;
-  margin-top: 10px;
+}
+
+.today-low {
+  opacity: 0.7;
+}
+
+.today-rain {
+  color: #7fc8f8;
+  font-size: 20px;
+}
+
+/* big temp */
+.temp {
+  font-size: 160px;
+  font-weight: bold;
 }
 
 .wind {
-  font-size: 28px;
-  margin-top: 12px;
+  margin-top: 10px;
+  font-size: 26px;
   opacity: 0.85;
 }
 
-/* ✅ bigger forecast */
+/* ✅ FUTURE FORECAST */
 .forecast {
   display: flex;
-  gap: 65px;
-  margin-top: 80px;
+  gap: 60px;
+  margin-top: 70px;
 }
 
 .forecast-day {
   text-align: center;
-  font-size: 32px;
+  font-size: 28px;
   min-width: 110px;
 }
 
 .icon {
-  font-size: 38px;
+  font-size: 36px;
 }
 
 .rain {
   font-size: 22px;
-  margin-top: 8px;
 }
 
-/* ✅ RIGHT SIDE */
+/* RIGHT PANEL */
 .side {
   flex: 1;
   background: #132f5e;
@@ -84,25 +112,12 @@ body {
   padding: 40px;
 }
 
-/* time */
-.clock {
-  font-size: 56px;
-  font-weight: bold;
-}
-
-.date {
-  font-size: 32px;
-  opacity: 0.85;
-}
-
-/* ✅ LOGO (now properly placed) */
 .logo {
   width: 200px;
-  margin: 30px auto 0 auto;
+  margin: 40px auto;
   display: block;
 }
 
-/* notice */
 .notice {
   font-size: 34px;
 }
@@ -117,12 +132,21 @@ body {
   <!-- LEFT -->
   <div class="weather">
 
+    <!-- ✅ TIME MOVED HERE -->
+    <div id="clock" class="clock"></div>
+
     <div class="city">Oklahoma City</div>
     <div class="desc">Current Conditions</div>
 
-    <div style="display:flex; align-items:center; gap:30px;">
+    <div class="current-row">
+
       <div id="icon" class="current-icon">☀️</div>
+
+      <!-- ✅ TODAY DETAILS -->
+      <div id="todayDetails" class="today-details"></div>
+
       <div id="temp" class="temp">--°F</div>
+
     </div>
 
     <div id="wind" class="wind"></div>
@@ -135,18 +159,12 @@ body {
   <div class="side">
 
     <div>
-      <div id="clock" class="clock"></div>
-      <div id="date" class="date"></div>
-
-      <!-- ✅ LOGO MOVED HERE -->
       <img src="logo.png" class="logo">
     </div>
 
     <div class="notice">
       <div>Welcome to the Homeless Alliance</div>
-
       <div style="height:20px;"></div>
-
       <div style="color:#ffd166; font-weight:bold;">
         Day Shelter Hours: 7:00 AM - 3:00 PM
       </div>
@@ -163,7 +181,6 @@ function getIcon(code) {
   if (code <= 2) return "🌤️";
   if (code <= 45) return "☁️";
   if (code >= 51 && code <= 67) return "☁️💧";
-  if (code >= 71 && code <= 77) return "❄️";
   if (code >= 95) return "☁️⚡";
   return "🌤️";
 }
@@ -184,10 +201,10 @@ async function loadWeather() {
 
     const data = await res.json();
 
-    let f = Math.round((data.current_weather.temperature * 9/5) + 32);
+    let tempF = Math.round((data.current_weather.temperature * 9/5) + 32);
 
-    document.getElementById("temp").innerText = f + "°F";
-    document.getElementById("temp").style.color = getTempColor(f);
+    document.getElementById("temp").innerText = tempF + "°F";
+    document.getElementById("temp").style.color = getTempColor(tempF);
 
     document.getElementById("icon").innerText =
       getIcon(data.current_weather.weathercode);
@@ -195,46 +212,50 @@ async function loadWeather() {
     document.getElementById("wind").innerText =
       "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
+    /* ✅ TODAY DETAILS */
+    let high = Math.round((data.daily.temperature_2m_max[0] * 9/5) + 32);
+    let low  = Math.round((data.daily.temperature_2m_min[0] * 9/5) + 32);
+    let rain = data.daily.precipitation_probability_max[0];
+
+    document.getElementById("todayDetails").innerHTML = `
+      <div>Today</div>
+      <div>
+        <span class="today-high">${high}°</span>
+        <span class="today-low"> / ${low}°</span>
+      </div>
+      <div class="today-rain">${rain}%</div>
+    `;
+
+    /* ✅ FUTURE DAYS ONLY (START THURSDAY) */
     let html = "";
 
     data.daily.time.slice(1,6).forEach((day, i) => {
 
-      let code = data.daily.weathercode[i+1];
-      let rain = data.daily.precipitation_probability_max[i+1];
+      let idx = i + 1;
 
-      let icon = getIcon(code);
-
-      if (code >= 95 && rain < 25) {
-        icon = rain > 10 ? "☁️💧" : "☁️";
-      }
-
-      let high = Math.round((data.daily.temperature_2m_max[i+1] * 9/5) + 32);
-      let low  = Math.round((data.daily.temperature_2m_min[i+1] * 9/5) + 32);
+      let code = data.daily.weathercode[idx];
+      let rain = data.daily.precipitation_probability_max[idx];
+      let high = Math.round((data.daily.temperature_2m_max[idx] * 9/5) + 32);
+      let low  = Math.round((data.daily.temperature_2m_min[idx] * 9/5) + 32);
 
       let label = new Date(day).toLocaleDateString([], { weekday: 'short' });
-
-      let rainDisplay = `
-        <div class="rain" style="color:${rain >= 15 ? '#7fc8f8' : 'rgba(255,255,255,0.5)'};">
-          ${rain}%
-        </div>
-      `;
 
       html += `
         <div class="forecast-day">
           <div>${label}</div>
-          <div class="icon">${icon}</div>
+          <div class="icon">${getIcon(code)}</div>
           <div>
-            <span style="color:${getTempColor(high)}; font-weight:bold;">${high}°</span>
+            <span style="color:#ffd166; font-weight:bold;">${high}°</span>
             <span style="opacity:0.7;"> / ${low}°</span>
           </div>
-          ${rainDisplay}
+          <div class="rain">${rain}%</div>
         </div>
       `;
     });
 
     document.getElementById("forecast").innerHTML = html;
 
-  } catch (e) {
+  } catch {
     document.getElementById("temp").innerText = "--°F";
   }
 }
@@ -242,17 +263,12 @@ async function loadWeather() {
 /* CLOCK */
 function updateClock() {
   const now = new Date();
-
   document.getElementById("clock").innerText =
     now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-  document.getElementById("date").innerText =
-    now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
 loadWeather();
 setInterval(loadWeather, 600000);
-
 updateClock();
 setInterval(updateClock, 60000);
 
@@ -260,3 +276,8 @@ setInterval(updateClock, 60000);
 
 </body>
 </html>
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.container {
