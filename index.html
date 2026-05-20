@@ -34,6 +34,7 @@ body {
   gap: 30px;
   margin-top: 30px;
 }
+
 .current-icon { font-size: 80px; }
 .temp { font-size: 160px; font-weight: bold; }
 .wind { margin-top: 10px; font-size: 26px; opacity: 0.85; }
@@ -44,6 +45,7 @@ body {
   gap: 60px;
   margin-top: 70px;
 }
+
 .forecast-day {
   text-align: center;
   font-size: 28px;
@@ -51,11 +53,13 @@ body {
   padding: 12px;
   border-radius: 12px;
 }
+
 .forecast-day.today {
   background: rgba(255,255,255,0.08);
   border: 2px solid #7fc8f8;
   transform: scale(1.05);
 }
+
 .icon { font-size: 36px; }
 
 /* ✅ Rain % blue */
@@ -77,18 +81,26 @@ body {
 .side-top {
   text-align: center;
 }
-.clock { font-size: 52px; font-weight: bold; }
-.date { font-size: 28px; opacity: 0.85; }
 
-/* middle: logo vertically centered between top and bottom */
+/* ✅ Larger time/date */
+.clock { font-size: 64px; font-weight: bold; }
+.date  { font-size: 34px; opacity: 0.9; }
+
+/* middle: logo between top and bottom */
 .side-middle {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+
+  /* ✅ pushes logo down a bit so it doesn't hug the time/date */
+  padding-top: 35px;
+  padding-bottom: 35px;
 }
+
+/* ✅ Larger logo */
 .logo {
-  width: 200px;
+  width: 250px;
   display: block;
 }
 
@@ -118,7 +130,6 @@ body {
 
   <!-- RIGHT -->
   <div class="side">
-
     <div class="side-top">
       <div id="clock" class="clock"></div>
       <div id="date" class="date"></div>
@@ -134,7 +145,6 @@ body {
         Day Shelter Hours: 7:00 AM - 3:00 PM
       </div>
     </div>
-
   </div>
 
 </div>
@@ -158,7 +168,7 @@ function getTempColor(tempF) {
   return "#ff6b6b";
 }
 
-/* ✅ Get YYYY-MM-DD in a specific timezone (prevents Tue/Wed mismatch) */
+/* ✅ Get YYYY-MM-DD in a specific timezone */
 function getTodayKeyInTZ(tz) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: tz,
@@ -171,6 +181,13 @@ function getTodayKeyInTZ(tz) {
   const m = parts.find(p => p.type === "month").value;
   const d = parts.find(p => p.type === "day").value;
   return `${y}-${m}-${d}`;
+}
+
+/* ✅ Fix weekday label shift: parse date as LOCAL NOON and format in DISPLAY_TZ */
+function weekdayFromISO(dateStr, tz) {
+  // Using "T12:00:00" prevents UTC-midnight rollback issues
+  const safeDate = new Date(dateStr + "T12:00:00");
+  return new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: tz }).format(safeDate);
 }
 
 async function loadWeather() {
@@ -188,7 +205,7 @@ async function loadWeather() {
     document.getElementById("wind").innerText =
       "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
-    // ✅ Forecast starts on real local today
+    // Forecast starts on real local today
     const todayKey = getTodayKeyInTZ(DISPLAY_TZ);
     let startIndex = data.daily.time.indexOf(todayKey);
     if (startIndex < 0) startIndex = 0;
@@ -200,7 +217,9 @@ async function loadWeather() {
       const high = Math.round((data.daily.temperature_2m_max[i] * 9/5) + 32);
       const low  = Math.round((data.daily.temperature_2m_min[i] * 9/5) + 32);
 
-      const label = new Date(data.daily.time[i]).toLocaleDateString([], { weekday: "short" });
+      // ✅ Correct weekday label (no more Tue/Wed shift)
+      const label = weekdayFromISO(data.daily.time[i], DISPLAY_TZ);
+
       const className = (i === startIndex) ? "forecast-day today" : "forecast-day";
 
       html += `
@@ -212,6 +231,7 @@ async function loadWeather() {
         </div>
       `;
     }
+
     document.getElementById("forecast").innerHTML = html;
 
   } catch (e) {
@@ -219,10 +239,9 @@ async function loadWeather() {
   }
 }
 
-/* ✅ Clock/date centered in right column, also forced to OKC timezone */
+/* Clock/date centered in right column, forced to OKC timezone */
 function updateClock() {
   const now = new Date();
-
   document.getElementById("clock").innerText =
     now.toLocaleTimeString([], { timeZone: DISPLAY_TZ, hour: "2-digit", minute: "2-digit" });
 
