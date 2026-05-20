@@ -36,13 +36,7 @@ body {
   margin-top: 30px;
 }
 
-/* ✅ ICON STYLE */
-.current-icon img {
-  width: 90px;
-  height: 90px;
-  filter: brightness(0) invert(1);
-}
-
+.current-icon { font-size: 80px; }
 .temp {
   font-size: 160px;
   font-weight: bold;
@@ -72,11 +66,8 @@ body {
   border: 2px solid #7fc8f8;
 }
 
-/* ✅ FORECAST ICON */
-.icon img {
-  width: 40px;
-  height: 40px;
-  filter: brightness(0) invert(1);
+.icon {
+  font-size: 36px;
 }
 
 .rain {
@@ -98,8 +89,13 @@ body {
   padding-top: 20px;
 }
 
-.clock { font-size: 64px; }
-.date { font-size: 34px; }
+.clock {
+  font-size: 64px;
+}
+
+.date {
+  font-size: 34px;
+}
 
 .side-middle {
   flex: 1;
@@ -108,9 +104,13 @@ body {
   justify-content: center;
 }
 
-.logo { width: 250px; }
+.logo {
+  width: 250px;
+}
 
-.notice { font-size: 32px; }
+.notice {
+  font-size: 32px;
+}
 </style>
 </head>
 
@@ -124,11 +124,12 @@ body {
 <div class="desc">Current Conditions</div>
 
 <div class="current-row">
-<div id="icon" class="current-icon"></div>
+<div id="icon" class="current-icon">☀️</div>
 <div id="temp" class="temp">--°F</div>
 </div>
 
 <div id="wind" class="wind"></div>
+
 <div id="forecast" class="forecast"></div>
 
 </div>
@@ -157,22 +158,21 @@ Day Shelter Hours: 7:00 AM - 3:00 PM
 
 <script>
 
-/* ✅ FIXED + SAFE ICON PATHS */
-function getIconPath(code) {
-  if (code === 0) return "./Sun.svg";
-  if (code <= 2) return "./Cloud.svg";
-  if (code === 3) return "./Cloud.svg";
+/* ✅ ONLY CHANGE: BETTER EMOJIS (no stacking, no breakage) */
+function getIcon(code) {
+  if (code === 0) return "☀️";            // sun
+  if (code <= 2) return "⛅";              // partly cloudy
+  if (code === 3) return "☁️";            // cloudy
 
-  if (code >= 51 && code <= 67) return "./Rain.svg";
-  if (code >= 71 && code <= 77) return "./Snow.svg";
-  if (code >= 95) return "./Storm.svg";
+  if (code >= 51 && code <= 67) return "🌧️";  // ✅ blue rain
+  if (code >= 71 && code <= 77) return "🌨️";  // snow
+  if (code >= 95) return "⛈️";            // ✅ storm
 
-  return "./Default.svg";
+  return "⛅";
 }
 
 async function loadWeather() {
   try {
-
     const res = await fetch(
       "https://api.open-meteo.com/v1/forecast?latitude=35.4676&longitude=-97.5164&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_probability_max&current_weather=true&timezone=auto"
     );
@@ -183,9 +183,10 @@ async function loadWeather() {
 
     document.getElementById("temp").innerText = tempF + "°F";
 
-    /* ✅ NEVER BREAKS PAGE */
-    document.getElementById("icon").innerHTML =
-      `<img src="${getIconPath(data.current_weather.weathercode)}ext =
+    document.getElementById("icon").innerText =
+      getIcon(data.current_weather.weathercode);
+
+    document.getElementById("wind").innerText =
       "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
     const today = new Date().toLocaleDateString("en-CA");
@@ -211,8 +212,7 @@ async function loadWeather() {
       html += `
         <div class="${className}">
           <div>${label}</div>
-          <div class="icon">
-            <img src="${getIconPath(code   </div>
+          <div class="icon">${getIcon(code)}</div>
           <div>${high}° / ${low}°</div>
           <div class="rain">${rain}%</div>
         </div>
@@ -221,13 +221,11 @@ async function loadWeather() {
 
     document.getElementById("forecast").innerHTML = html;
 
-  } catch (err) {
-    console.error(err);
+  } catch {
     document.getElementById("temp").innerText = "--°F";
   }
 }
 
-/* CLOCK */
 function updateClock() {
   const now = new Date();
 
@@ -235,11 +233,7 @@ function updateClock() {
     now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   document.getElementById("date").innerText =
-    now.toLocaleDateString([], {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric'
-    });
+    now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
 loadWeather();
@@ -252,3 +246,4 @@ setInterval(updateClock, 60000);
 
 </body>
 </html>
+``
