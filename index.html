@@ -27,7 +27,7 @@ body { margin:0; background:#0b1e3c; color:white; font-family:Arial,sans-serif; 
  margin-top:30px;
 }
 
-/* ✅ SVG ICON SIZE */
+/* SVG SIZE */
 .current-icon img {
  width:80px;
  height:80px;
@@ -60,7 +60,6 @@ body { margin:0; background:#0b1e3c; color:white; font-family:Arial,sans-serif; 
 }
 
 .icon { font-size:36px; }
-
 .rain { font-size:22px; color:#7fc8f8; }
 
 /* RIGHT */
@@ -95,21 +94,16 @@ body { margin:0; background:#0b1e3c; color:white; font-family:Arial,sans-serif; 
 <div class="container">
 
 <div class="weather">
-
 <div class="city">Oklahoma City</div>
 <div class="desc">Current Conditions</div>
 
 <div class="current-row">
-
-<!-- ✅ ONLY CHANGE: SVG FOR CURRENT ICON -->
 <div id="icon" class="current-icon"></div>
-
 <div id="temp" class="temp">--°F</div>
 </div>
 
 <div id="wind" class="wind"></div>
 <div id="forecast" class="forecast"></div>
-
 </div>
 
 <div class="side">
@@ -128,15 +122,15 @@ body { margin:0; background:#0b1e3c; color:white; font-family:Arial,sans-serif; 
 Day Shelter Hours: 7:00 AM - 3:00 PM
 </div>
 </div>
-
 </div>
+
 </div>
 
 <script>
 
 const DISPLAY_TZ = "America/Chicago";
 
-/* ✅ ONLY CURRENT ICON USES SVG */
+/* SVG PATH */
 function getIconPath(code){
  if (code === 0) return "./Sun.svg";
  if (code <= 2) return "./Cloud.svg";
@@ -146,7 +140,7 @@ function getIconPath(code){
  return "./Cloud.svg";
 }
 
-/* ✅ KEEP YOUR WORKING EMOJI SYSTEM */
+/* EMOJIS (unchanged) */
 function getIcon(code){
  if (code === 0) return "☀️";
  if (code <= 2) return "🌤️";
@@ -188,6 +182,7 @@ function weekdayFromISO(dateStr, tz){
 
 async function loadWeather(){
  try{
+
   const res = await fetch(
    "https://api.open-meteo.com/v1/forecast?latitude=35.4676&longitude=-97.5164&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_probability_max&current_weather=true&timezone=auto"
   );
@@ -199,9 +194,9 @@ async function loadWeather(){
   document.getElementById("temp").innerText = tempF + "°F";
   document.getElementById("temp").style.color = getTempColor(tempF);
 
-  /* ✅ SWAP CURRENT ICON ONLY */
+  /* ✅ FIXED LINE */
   document.getElementById("icon").innerHTML =
-    `<img src="${getIconPath(data.current_weather.weathercodeElementById("wind").innerText =
+    `<img src="${getIconPath(data.current_weather.weather("wind").innerText =
     "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
   const todayKey = getTodayKeyInTZ(DISPLAY_TZ);
@@ -255,4 +250,3 @@ setInterval(updateClock,60000);
 </script>
 </body>
 </html>
-``
