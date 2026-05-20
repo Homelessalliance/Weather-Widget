@@ -35,7 +35,12 @@ body {
   margin-top: 30px;
 }
 
-.current-icon { font-size: 80px; }
+/* current icon is now an IMG */
+.current-icon-img {
+  width: 96px;
+  height: 96px;
+}
+
 .temp { font-size: 160px; font-weight: bold; }
 .wind { margin-top: 10px; font-size: 26px; opacity: 0.85; }
 
@@ -60,7 +65,12 @@ body {
   transform: scale(1.05);
 }
 
-.icon { font-size: 36px; }
+/* forecast icon is now an IMG */
+.forecast-icon-img {
+  width: 56px;
+  height: 56px;
+  margin: 6px 0;
+}
 
 /* Rain % blue */
 .rain {
@@ -74,42 +84,31 @@ body {
   background: #132f5e;
   display: flex;
   flex-direction: column;
-
-  /* ✅ Slightly more top padding for TV overscan safety */
   padding: 55px 40px 40px 40px;
 }
 
-/* ✅ Time/date centered and lowered */
 .side-top {
   text-align: center;
-
-  /* ✅ This is the main "lower it" control */
-  padding-top: 20px;   /* try 30-45 if your TV crops more */
+  padding-top: 20px;
 }
 
-/* Larger time/date */
 .clock { font-size: 64px; font-weight: bold; }
 .date  { font-size: 34px; opacity: 0.9; }
 
-/* Middle: logo vertically centered between top and bottom */
 .side-middle {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  /* Keeps logo centered visually */
   padding-top: 35px;
   padding-bottom: 35px;
 }
 
-/* Larger logo */
 .logo {
   width: 250px;
   display: block;
 }
 
-/* Bottom welcome message */
 .notice {
   font-size: 32px;
 }
@@ -125,7 +124,7 @@ body {
     <div class="desc">Current Conditions</div>
 
     <div class="current-row">
-      <div id="icon" class="current-icon">☀️</div>
+      <img id="icon" class="current-icon-img" alt="Current weather icon" />
       <div id="temp" class="temp">--°F</div>
     </div>
 
@@ -155,15 +154,48 @@ body {
 </div>
 
 <script>
-const DISPLAY_TZ = "America/Chicago"; // OKC local time
+const DISPLAY_TZ = "America/Chicago";
 
-function getIcon(code) {
-  if (code === 0) return "☀️";
-  if (code <= 2) return "🌤️";
-  if (code <= 45) return "☁️";
-  if (code >= 51 && code <= 67) return "☁️💧";
-  if (code >= 95) return "☁️⚡";
-  return "🌤️";
+/**
+ * Meteocons CDN usage is documented with URLs like:
+ * https://cdn.meteocons.com/latest/svg/fill/clear-day.svg
+ * (style can be fill / flat / line / monochrome)
+ */
+const METEOCONS_STYLE = "fill"; // try "flat" if you want less gradient
+const METEOCONS_BASE  = `https://cdn.meteocons.com/latest/svg/${METEOCONS_STYLE}`;
+
+/**
+ * Map Open-Meteo weather codes to Meteocons icon slugs.
+ * (Meteocons docs/examples show slugs like clear-day, rain, drizzle, thunderstorms-rain, etc.)
+ */
+function meteoconsSlugFromCode(code) {
+  // Open-Meteo weathercode reference grouping (simplified for signage)
+  if (code === 0) return "clear-day";
+  if (code === 1 || code === 2) return "partly-cloudy-day";
+  if (code === 3) return "overcast";
+
+  // Fog
+  if (code === 45 || code === 48) return "fog";
+
+  // Drizzle (51/53/55) and Freezing drizzle (56/57)
+  if (code >= 51 && code <= 57) return "drizzle";
+
+  // Rain (61/63/65), Freezing rain (66/67), Showers (80/81/82)
+  if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return "rain";
+
+  // Snow (71/73/75), Snow grains (77), Snow showers (85/86)
+  if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) return "snow";
+
+  // Thunderstorms (95/96/99)
+  if (code >= 95) return "thunderstorms";
+
+  // Default fallback
+  return "overcast";
+}
+
+function meteoconsUrl(code) {
+  const slug = meteoconsSlugFromCode(code);
+  return `${METEOCONS_BASE}/${slug}.svg`;
 }
 
 function getTempColor(tempF) {
@@ -199,13 +231,20 @@ async function loadWeather() {
     );
     const data = await res.json();
 
+    // Current conditions
     const tempF = Math.round((data.current_weather.temperature * 9/5) + 32);
     document.getElementById("temp").innerText = tempF + "°F";
     document.getElementById("temp").style.color = getTempColor(tempF);
-    document.getElementById("icon").innerText = getIcon(data.current_weather.weathercode);
+
+    // ✅ Meteocons current icon (with a safe fallback if a slug ever 404s)
+    const iconEl = document.getElementById("icon");
+    iconEl.src = meteoconsUrl(data.current_weather.weathercode);
+    iconEl.onerror = () => { iconEl.src = `${METEOCONS_BASE}/overcast.svg`; };
+
     document.getElementById("wind").innerText =
       "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
+    // Forecast starts on real local today
     const todayKey = getTodayKeyInTZ(DISPLAY_TZ);
     let startIndex = data.daily.time.indexOf(todayKey);
     if (startIndex < 0) startIndex = 0;
@@ -220,16 +259,13 @@ async function loadWeather() {
       const label = weekdayFromISO(data.daily.time[i], DISPLAY_TZ);
       const className = (i === startIndex) ? "forecast-day today" : "forecast-day";
 
+      const iconUrl = meteoconsUrl(code);
+
       html += `
         <div class="${className}">
           <div>${label}</div>
-          <div class="icon">${getIcon(code)}</div>
-          <div><span style="color:#ffd166;">${high}°</span> / ${low}°</div>
-          <div class="rain">${rain}%</div>
-        </div>
-      `;
-    }
-    document.getElementById("forecast").innerHTML = html;
+          <img class="forecast-icon-img" src="${iconUrl}" alt="Forecast icon"
+               onerror="this.src='${METEOCONS_BASE}/overcast.svg';"forecast").innerHTML = html;
 
   } catch (e) {
     document.getElementById("temp").innerText = "--°F";
