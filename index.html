@@ -25,14 +25,8 @@ body {
   justify-content: center;
 }
 
-.city {
-  font-size: 50px;
-}
-
-.desc {
-  font-size: 28px;
-  margin-top: 8px;
-}
+.city { font-size: 50px; }
+.desc { font-size: 28px; margin-top: 8px; }
 
 .current-row {
   display: flex;
@@ -40,21 +34,9 @@ body {
   gap: 30px;
   margin-top: 30px;
 }
-
-.current-icon {
-  font-size: 80px;
-}
-
-.temp {
-  font-size: 160px;
-  font-weight: bold;
-}
-
-.wind {
-  margin-top: 10px;
-  font-size: 26px;
-  opacity: 0.85;
-}
+.current-icon { font-size: 80px; }
+.temp { font-size: 160px; font-weight: bold; }
+.wind { margin-top: 10px; font-size: 26px; opacity: 0.85; }
 
 /* FORECAST */
 .forecast {
@@ -62,7 +44,6 @@ body {
   gap: 60px;
   margin-top: 70px;
 }
-
 .forecast-day {
   text-align: center;
   font-size: 28px;
@@ -70,19 +51,14 @@ body {
   padding: 12px;
   border-radius: 12px;
 }
-
-/* Highlight today */
 .forecast-day.today {
   background: rgba(255,255,255,0.08);
   border: 2px solid #7fc8f8;
   transform: scale(1.05);
 }
+.icon { font-size: 36px; }
 
-.icon {
-  font-size: 36px;
-}
-
-/* ✅ Make all rain % blue */
+/* ✅ Rain % blue */
 .rain {
   font-size: 22px;
   color: #7fc8f8;
@@ -94,32 +70,29 @@ body {
   background: #132f5e;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   padding: 40px;
 }
 
-/* ✅ Center top section */
+/* top: centered time/date */
 .side-top {
   text-align: center;
 }
+.clock { font-size: 52px; font-weight: bold; }
+.date { font-size: 28px; opacity: 0.85; }
 
-.clock {
-  font-size: 52px;
-  font-weight: bold;
+/* middle: logo vertically centered between top and bottom */
+.side-middle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-
-.date {
-  font-size: 28px;
-  opacity: 0.85;
-}
-
-/* ✅ Center logo between time/date and welcome */
 .logo {
   width: 200px;
   display: block;
-  margin: 28px auto 0 auto;
 }
 
+/* bottom: welcome message */
 .notice {
   font-size: 32px;
 }
@@ -145,9 +118,13 @@ body {
 
   <!-- RIGHT -->
   <div class="side">
+
     <div class="side-top">
       <div id="clock" class="clock"></div>
       <div id="date" class="date"></div>
+    </div>
+
+    <div class="side-middle">
       <img src="logo.png" class="logo" alt="Homeless Alliance Logo">
     </div>
 
@@ -157,11 +134,14 @@ body {
         Day Shelter Hours: 7:00 AM - 3:00 PM
       </div>
     </div>
+
   </div>
 
 </div>
 
 <script>
+const DISPLAY_TZ = "America/Chicago"; // OKC local time
+
 function getIcon(code) {
   if (code === 0) return "☀️";
   if (code <= 2) return "🌤️";
@@ -178,6 +158,21 @@ function getTempColor(tempF) {
   return "#ff6b6b";
 }
 
+/* ✅ Get YYYY-MM-DD in a specific timezone (prevents Tue/Wed mismatch) */
+function getTodayKeyInTZ(tz) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+
+  const y = parts.find(p => p.type === "year").value;
+  const m = parts.find(p => p.type === "month").value;
+  const d = parts.find(p => p.type === "day").value;
+  return `${y}-${m}-${d}`;
+}
+
 async function loadWeather() {
   try {
     const res = await fetch(
@@ -186,30 +181,27 @@ async function loadWeather() {
     const data = await res.json();
 
     // Current conditions
-    let tempF = Math.round((data.current_weather.temperature * 9/5) + 32);
+    const tempF = Math.round((data.current_weather.temperature * 9/5) + 32);
     document.getElementById("temp").innerText = tempF + "°F";
     document.getElementById("temp").style.color = getTempColor(tempF);
     document.getElementById("icon").innerText = getIcon(data.current_weather.weathercode);
     document.getElementById("wind").innerText =
       "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
-    // ✅ FIX: determine "today" based on API current_weather time (local to timezone=auto)
-    let today = (data.current_weather.time || "").split("T")[0];
-    let startIndex = data.daily.time.indexOf(today);
-
-    // Fallback if for some reason it doesn't match
+    // ✅ Forecast starts on real local today
+    const todayKey = getTodayKeyInTZ(DISPLAY_TZ);
+    let startIndex = data.daily.time.indexOf(todayKey);
     if (startIndex < 0) startIndex = 0;
 
-    // Build 5-day forecast starting from today
     let html = "";
     for (let i = startIndex; i < Math.min(startIndex + 5, data.daily.time.length); i++) {
-      let code = data.daily.weathercode[i];
-      let rain = data.daily.precipitation_probability_max[i];
-      let high = Math.round((data.daily.temperature_2m_max[i] * 9/5) + 32);
-      let low  = Math.round((data.daily.temperature_2m_min[i] * 9/5) + 32);
+      const code = data.daily.weathercode[i];
+      const rain = data.daily.precipitation_probability_max[i];
+      const high = Math.round((data.daily.temperature_2m_max[i] * 9/5) + 32);
+      const low  = Math.round((data.daily.temperature_2m_min[i] * 9/5) + 32);
 
-      let label = new Date(data.daily.time[i]).toLocaleDateString([], { weekday: 'short' });
-      let className = (i === startIndex) ? "forecast-day today" : "forecast-day";
+      const label = new Date(data.daily.time[i]).toLocaleDateString([], { weekday: "short" });
+      const className = (i === startIndex) ? "forecast-day today" : "forecast-day";
 
       html += `
         <div class="${className}">
@@ -227,13 +219,15 @@ async function loadWeather() {
   }
 }
 
-/* CLOCK (right panel) */
+/* ✅ Clock/date centered in right column, also forced to OKC timezone */
 function updateClock() {
   const now = new Date();
+
   document.getElementById("clock").innerText =
-    now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    now.toLocaleTimeString([], { timeZone: DISPLAY_TZ, hour: "2-digit", minute: "2-digit" });
+
   document.getElementById("date").innerText =
-    now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+    now.toLocaleDateString([], { timeZone: DISPLAY_TZ, weekday: "long", month: "long", day: "numeric" });
 }
 
 loadWeather();
@@ -242,5 +236,6 @@ setInterval(loadWeather, 600000);
 updateClock();
 setInterval(updateClock, 60000);
 </script>
+
 </body>
 </html>
