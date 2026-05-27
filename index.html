@@ -11,6 +11,21 @@ body {
  color: white;
  font-family: Arial, sans-serif;
 }
+
+/* ✅ fallback style */
+#fallback {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ height: 100vh;
+ font-size: 42px;
+}
+
+/* ✅ hide real app until ready */
+#app {
+ display: none;
+}
+
 .container {
  display: flex;
  height: 100vh;
@@ -35,7 +50,6 @@ body {
  margin-top: 30px;
 }
 
-/* ✅ SVG style */
 .current-icon img {
  width: 80px;
  height: 80px;
@@ -53,7 +67,6 @@ body {
  opacity: 0.85;
 }
 
-/* FORECAST */
 .forecast {
  display: flex;
  gap: 60px;
@@ -117,6 +130,12 @@ body {
 
 <body>
 
+<!-- ✅ ALWAYS VISIBLE IMMEDIATELY -->
+<div id="fallback">Loading weather...</div>
+
+<!-- ✅ REAL APP -->
+<div id="app">
+
 <div class="container">
 
 <div class="weather">
@@ -151,12 +170,20 @@ Day Shelter Hours: 7:00 AM - 3:00 PM
 </div>
 
 </div>
+</div>
 
 <script>
 
 const DISPLAY_TZ = "America/Chicago";
 
-/* ✅ SVG mapping */
+/* ✅ show UI once ready */
+function showApp() {
+ document.getElementById("fallback").style.display = "none";
+ document.getElementById("app").style.display = "block";
+}
+
+/* existing functions unchanged below */
+
 function getIconFile(code) {
  if (code === 0) return "Sun.svg";
  if (code <= 2) return "Cloud.svg";
@@ -208,7 +235,6 @@ async function loadWeather() {
   document.getElementById("temp").innerText = tempF + "°F";
   document.getElementById("temp").style.color = getTempColor(tempF);
 
-  /* ✅ CURRENT SVG */
   var currentFile = getIconFile(data.current_weather.weathercode);
   document.getElementById("icon").innerHTML =
     '<img src="' + currentFile + '">';
@@ -243,8 +269,14 @@ async function loadWeather() {
 
   document.getElementById("forecast").innerHTML = html;
 
+  // ✅ SHOW UI ONLY AFTER DATA READY
+  showApp();
+
  } catch (e) {
   document.getElementById("temp").innerText = "--°F";
+
+  // still show UI so it never stays blank
+  showApp();
  }
 }
 
@@ -267,7 +299,11 @@ function updateClock() {
   });
 }
 
-loadWeather();
+/* ✅ DELAY LOAD (critical for that one TV) */
+setTimeout(() => {
+ loadWeather();
+}, 1000);
+
 setInterval(loadWeather, 600000);
 
 updateClock();
@@ -277,4 +313,3 @@ setInterval(updateClock, 60000);
 
 </body>
 </html>
-``
