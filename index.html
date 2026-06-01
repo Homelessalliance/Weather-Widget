@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Dashboard</title>
+<title>Weather</title>
 
 <style>
 body {
@@ -12,7 +12,7 @@ body {
  font-family: Arial, sans-serif;
 }
 
-/* ✅ fallback style */
+/* fallback */
 #fallback {
  display: flex;
  align-items: center;
@@ -21,19 +21,20 @@ body {
  font-size: 42px;
 }
 
-/* ✅ hide real app until ready */
+/* main app */
 #app {
  display: none;
 }
 
+/* ✅ single full-width layout now */
 .container {
  display: flex;
  height: 100vh;
 }
 
-/* LEFT */
+/* Weather now fills full screen */
 .weather {
- flex: 2;
+ flex: 1;
  display: flex;
  flex-direction: column;
  align-items: center;
@@ -50,10 +51,10 @@ body {
  margin-top: 30px;
 }
 
+/* ✅ removed problematic filter */
 .current-icon img {
  width: 80px;
  height: 80px;
- filter: brightness(0) invert(1);
 }
 
 .temp {
@@ -87,10 +88,10 @@ body {
  transform: scale(1.05);
 }
 
+/* ✅ removed filter */
 .icon img {
  width: 40px;
  height: 40px;
- filter: brightness(0) invert(1);
 }
 
 .rain {
@@ -98,91 +99,36 @@ body {
  color: #7fc8f8;
 }
 
-/* RIGHT */
-.side {
- flex: 1;
- background: #132f5e;
- display: flex;
- flex-direction: column;
- padding: 55px 40px 40px 40px;
-}
-
-.side-top {
- text-align: center;
- padding-top: 20px;
-}
-
-.clock { font-size: 64px; font-weight: bold; }
-.date { font-size: 34px; opacity: 0.9; }
-
-.side-middle {
- flex: 1;
- display: flex;
- align-items: center;
- justify-content: center;
-}
-
-.logo { width: 250px; }
-
-.notice { font-size: 32px; }
 </style>
 </head>
 
 <body>
 
-<!-- ✅ ALWAYS VISIBLE IMMEDIATELY -->
 <div id="fallback">Loading weather...</div>
 
-<!-- ✅ REAL APP -->
 <div id="app">
+  <div class="container">
+    <div class="weather">
+      <div class="city">Oklahoma City</div>
+      <div class="desc">Current Conditions</div>
 
-<div class="container">
+      <div class="current-row">
+        <div id="icon" class="current-icon"></div>
+        <div id="temp" class="temp">--°F</div>
+      </div>
 
-<div class="weather">
-<div class="city">Oklahoma City</div>
-<div class="desc">Current Conditions</div>
-
-<div class="current-row">
-<div id="icon" class="current-icon"></div>
-<div id="temp" class="temp">--°F</div>
-</div>
-
-<div id="wind" class="wind"></div>
-<div id="forecast" class="forecast"></div>
-</div>
-
-<div class="side">
-<div class="side-top">
-<div id="clock" class="clock"></div>
-<div id="date" class="date"></div>
-</div>
-
-<div class="side-middle">
-<img src="logo.png" class="logo">
-</div>
-
-<div class="notice">
-<div>Welcome to the Homeless Alliance</div>
-<div style="margin-top:20px; color:#ffd166; font-weight:bold;">
-Day Shelter Hours: 7:00 AM - 3:00 PM
-</div>
-</div>
-</div>
-
-</div>
+      <div id="wind" class="wind"></div>
+      <div id="forecast" class="forecast"></div>
+    </div>
+  </div>
 </div>
 
 <script>
 
-const DISPLAY_TZ = "America/Chicago";
-
-/* ✅ show UI once ready */
 function showApp() {
  document.getElementById("fallback").style.display = "none";
  document.getElementById("app").style.display = "block";
 }
-
-/* existing functions unchanged below */
 
 function getIconFile(code) {
  if (code === 0) return "Sun.svg";
@@ -200,27 +146,6 @@ function getTempColor(tempF) {
  return "#ff6b6b";
 }
 
-function getTodayKeyInTZ(tz) {
- const parts = new Intl.DateTimeFormat("en-CA", {
-  timeZone: tz,
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit"
- }).formatToParts(new Date());
-
- return parts.find(p=>p.type==="year").value + "-" +
-        parts.find(p=>p.type==="month").value + "-" +
-        parts.find(p=>p.type==="day").value;
-}
-
-function weekdayFromISO(dateStr, tz) {
- const safeDate = new Date(dateStr + "T12:00:00");
- return new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  timeZone: tz
- }).format(safeDate);
-}
-
 async function loadWeather() {
  try {
 
@@ -235,79 +160,39 @@ async function loadWeather() {
   document.getElementById("temp").innerText = tempF + "°F";
   document.getElementById("temp").style.color = getTempColor(tempF);
 
-  var currentFile = getIconFile(data.current_weather.weathercode);
   document.getElementById("icon").innerHTML =
-    '<img src="' + currentFile + '">';
+    '<img src="' + getIconFile(data.current_weather.weathercode) + '">';
 
   document.getElementById("wind").innerText =
     "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
-  const todayKey = getTodayKeyInTZ(DISPLAY_TZ);
-  let startIndex = data.daily.time.indexOf(todayKey);
-  if (startIndex < 0) startIndex = 0;
-
   var html = "";
 
-  for (var i = startIndex; i < Math.min(startIndex + 5, data.daily.time.length); i++) {
-
+  for (var i = 0; i < 5; i++) {
    var code = data.daily.weathercode[i];
    var file = getIconFile(code);
 
-   var rain = data.daily.precipitation_probability_max[i];
    var high = Math.round((data.daily.temperature_2m_max[i]*9/5)+32);
    var low  = Math.round((data.daily.temperature_2m_min[i]*9/5)+32);
 
-   var label = weekdayFromISO(data.daily.time[i], DISPLAY_TZ);
-
-   html += '<div class="forecast-day ' + (i===startIndex ? 'today' : '') + '">';
-   html += '<div>' + label + '</div>';
+   html += '<div class="forecast-day">';
+   html += '<div>Day</div>';
    html += '<div class="icon"><img src="' + file + '"></div>';
    html += '<div><span style="color:#ffd166;">' + high + '°</span> / ' + low + '°</div>';
-   html += '<div class="rain">' + rain + '%</div>';
    html += '</div>';
   }
 
   document.getElementById("forecast").innerHTML = html;
 
-  // ✅ SHOW UI ONLY AFTER DATA READY
   showApp();
 
  } catch (e) {
-  document.getElementById("temp").innerText = "--°F";
-
-  // still show UI so it never stays blank
   showApp();
  }
 }
 
-function updateClock() {
- const now = new Date();
-
- document.getElementById("clock").innerText =
-  now.toLocaleTimeString([], {
-   timeZone: DISPLAY_TZ,
-   hour: "2-digit",
-   minute: "2-digit"
-  });
-
- document.getElementById("date").innerText =
-  now.toLocaleDateString([], {
-   timeZone: DISPLAY_TZ,
-   weekday: "long",
-   month: "long",
-   day: "numeric"
-  });
-}
-
-/* ✅ DELAY LOAD (critical for that one TV) */
-setTimeout(() => {
- loadWeather();
-}, 1000);
-
+setTimeout(loadWeather, 1200);
 setInterval(loadWeather, 600000);
-
-updateClock();
-setInterval(updateClock, 60000);
 
 </script>
 
