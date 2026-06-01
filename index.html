@@ -21,18 +21,18 @@ body {
  font-size: 42px;
 }
 
-/* main app */
+/* app hidden initially */
 #app {
  display: none;
 }
 
-/* ✅ single full-width layout now */
+/* full screen layout */
 .container {
  display: flex;
  height: 100vh;
 }
 
-/* Weather now fills full screen */
+/* weather fills screen */
 .weather {
  flex: 1;
  display: flex;
@@ -51,10 +51,11 @@ body {
  margin-top: 30px;
 }
 
-/* ✅ removed problematic filter */
+/* ✅ SAFE WHITE ICONS */
 .current-icon img {
  width: 80px;
  height: 80px;
+ filter: invert(1);
 }
 
 .temp {
@@ -88,10 +89,11 @@ body {
  transform: scale(1.05);
 }
 
-/* ✅ removed filter */
+/* ✅ SAFE WHITE ICONS */
 .icon img {
  width: 40px;
  height: 40px;
+ filter: invert(1);
 }
 
 .rain {
@@ -125,11 +127,13 @@ body {
 
 <script>
 
+// show UI after load
 function showApp() {
  document.getElementById("fallback").style.display = "none";
  document.getElementById("app").style.display = "block";
 }
 
+// icon selection
 function getIconFile(code) {
  if (code === 0) return "Sun.svg";
  if (code <= 2) return "Cloud.svg";
@@ -139,11 +143,12 @@ function getIconFile(code) {
  return "Cloud.svg";
 }
 
+// ✅ improved temperature colors
 function getTempColor(tempF) {
- if (tempF < 50) return "#4cc9f0";
- if (tempF < 70) return "#ffffff";
- if (tempF < 85) return "#ffd166";
- return "#ff6b6b";
+ if (tempF < 50) return "#4cc9f0";   // cold = blue
+ if (tempF < 70) return "#ffffff";   // normal = white
+ if (tempF < 80) return "#ffd166";   // warm = yellow
+ return "#ff3b3b";                   // hot = RED
 }
 
 async function loadWeather() {
@@ -155,22 +160,29 @@ async function loadWeather() {
 
   const data = await res.json();
 
+  // current temp
   const tempF = Math.round((data.current_weather.temperature * 9/5) + 32);
 
   document.getElementById("temp").innerText = tempF + "°F";
   document.getElementById("temp").style.color = getTempColor(tempF);
 
+  // icon
   document.getElementById("icon").innerHTML =
     '<img src="' + getIconFile(data.current_weather.weathercode) + '">';
 
+  // wind
   document.getElementById("wind").innerText =
     "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
+  // forecast
   var html = "";
 
   for (var i = 0; i < 5; i++) {
+
    var code = data.daily.weathercode[i];
    var file = getIconFile(code);
+
+   var rain = data.daily.precipitation_probability_max[i];
 
    var high = Math.round((data.daily.temperature_2m_max[i]*9/5)+32);
    var low  = Math.round((data.daily.temperature_2m_min[i]*9/5)+32);
@@ -179,11 +191,13 @@ async function loadWeather() {
    html += '<div>Day</div>';
    html += '<div class="icon"><img src="' + file + '"></div>';
    html += '<div><span style="color:#ffd166;">' + high + '°</span> / ' + low + '°</div>';
+   html += '<div class="rain">' + rain + '%</div>';
    html += '</div>';
   }
 
   document.getElementById("forecast").innerHTML = html;
 
+  // show after load
   showApp();
 
  } catch (e) {
@@ -191,7 +205,10 @@ async function loadWeather() {
  }
 }
 
+// ✅ delay to prevent Pi render skip
 setTimeout(loadWeather, 1200);
+
+// refresh every 10 min
 setInterval(loadWeather, 600000);
 
 </script>
