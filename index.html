@@ -47,10 +47,11 @@ body {
  margin-top: 30px;
 }
 
-/* ✅ FILTER REMOVED */
+/* ✅ FIXED: consistent white icons */
 .current-icon img {
  width: 80px;
  height: 80px;
+ filter: brightness(0) invert(1);
 }
 
 .temp {
@@ -84,10 +85,11 @@ body {
  transform: scale(1.05);
 }
 
-/* ✅ FILTER REMOVED */
+/* ✅ FIXED: consistent white icons */
 .icon img {
  width: 40px;
  height: 40px;
+ filter: brightness(0) invert(1);
 }
 
 .rain {
@@ -127,25 +129,19 @@ function showApp() {
  document.getElementById("app").style.display = "block";
 }
 
-/* ✅ IMPROVED ICON MAPPING */
+/* ✅ FIXED ICON LOGIC */
 function getIconFile(code) {
 
- // Sunny
  if (code === 0) return "Sun.svg";
 
- // Partly cloudy
  if (code === 1 || code === 2) return "PartlyCloud.svg";
 
- // Cloudy / fog
  if (code >= 3 && code <= 45) return "Cloud.svg";
 
- // Rain (light to heavy)
  if (code >= 51 && code <= 67) return "Rain.svg";
 
- // Snow
  if (code >= 71 && code <= 77) return "Snow.svg";
 
- // Thunderstorm
  if (code >= 95) return "Storm.svg";
 
  return "Default.svg";
