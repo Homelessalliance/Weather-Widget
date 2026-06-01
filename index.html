@@ -47,7 +47,7 @@ body {
  margin-top: 30px;
 }
 
-/* ✅ WHITE ICON FIX */
+/* ✅ KEEP WHITE ICON FIX */
 .current-icon img {
  width: 80px;
  height: 80px;
@@ -85,7 +85,7 @@ body {
  transform: scale(1.05);
 }
 
-/* ✅ WHITE ICON FIX */
+/* ✅ KEEP WHITE ICON FIX */
 .icon img {
  width: 40px;
  height: 40px;
@@ -129,28 +129,30 @@ function showApp() {
  document.getElementById("app").style.display = "block";
 }
 
-/* ✅ SMART ICON LOGIC (GOOGLE-LIKE) */
+/* ✅ SIMPLE + GOOGLE-LIKE LOGIC (FINAL) */
 function getIconFile(code, rainChance) {
 
- // ✅ OVERRIDE: low rain chance → don't show rain/storm
- if (rainChance <= 20) {
-   if (code <= 2) return "PartlyCloud.svg";
+ // ✅ Very dry → Sun
+ if (rainChance <= 10) {
    return "Sun.svg";
  }
 
- if (code === 0) return "Sun.svg";
+ // ✅ Light chance → Partly Cloudy (fixes Tue/Wed)
+ if (rainChance > 10 && rainChance <= 30) {
+   return "PartlyCloud.svg";
+ }
 
- if (code === 1 || code === 2) return "PartlyCloud.svg";
+ // ✅ Medium chance → Rain (fixes Thu/Fri)
+ if (rainChance > 30 && rainChance <= 60) {
+   return "Rain.svg";
+ }
 
- if (code >= 3 && code <= 45) return "Cloud.svg";
+ // ✅ High chance → Storm
+ if (rainChance > 60) {
+   return "Storm.svg";
+ }
 
- if (code >= 51 && code <= 67) return "Rain.svg";
-
- if (code >= 71 && code <= 77) return "Snow.svg";
-
- if (code >= 95) return "Storm.svg";
-
- return "Default.svg";
+ return "Cloud.svg";
 }
 
 function getTempColor(tempF) {
@@ -197,7 +199,6 @@ async function loadWeather() {
   let startIndex = data.daily.time.indexOf(todayKey);
   if (startIndex < 0) startIndex = 0;
 
-  /* ✅ FIX: pass rain chance into icon logic */
   const currentRain = data.daily.precipitation_probability_max[startIndex];
 
   document.getElementById("icon").innerHTML =
