@@ -12,7 +12,7 @@ body {
  font-family: Arial, sans-serif;
 }
 
-/* ✅ Always visible immediately */
+/* ✅ fallback style */
 #fallback {
  display: flex;
  align-items: center;
@@ -21,7 +21,7 @@ body {
  font-size: 42px;
 }
 
-/* Hide app until ready */
+/* ✅ hide real app until ready */
 #app {
  display: none;
 }
@@ -50,10 +50,10 @@ body {
  margin-top: 30px;
 }
 
-/* ✅ REMOVED FILTER (important) */
 .current-icon img {
  width: 80px;
  height: 80px;
+ filter: brightness(0) invert(1);
 }
 
 .temp {
@@ -67,7 +67,6 @@ body {
  opacity: 0.85;
 }
 
-/* FORECAST */
 .forecast {
  display: flex;
  gap: 60px;
@@ -88,10 +87,10 @@ body {
  transform: scale(1.05);
 }
 
-/* ✅ REMOVED FILTER */
 .icon img {
  width: 40px;
  height: 40px;
+ filter: brightness(0) invert(1);
 }
 
 .rain {
@@ -126,16 +125,15 @@ body {
 .logo { width: 250px; }
 
 .notice { font-size: 32px; }
-
 </style>
 </head>
 
 <body>
 
-<!-- ✅ Visible immediately -->
+<!-- ✅ ALWAYS VISIBLE IMMEDIATELY -->
 <div id="fallback">Loading weather...</div>
 
-<!-- ✅ Real app -->
+<!-- ✅ REAL APP -->
 <div id="app">
 
 <div class="container">
@@ -146,7 +144,7 @@ body {
 
 <div class="current-row">
 <div id="icon" class="current-icon"></div>
-<div id="temp" class="temp">Loading...</div>
+<div id="temp" class="temp">--°F</div>
 </div>
 
 <div id="wind" class="wind"></div>
@@ -178,10 +176,13 @@ Day Shelter Hours: 7:00 AM - 3:00 PM
 
 const DISPLAY_TZ = "America/Chicago";
 
+/* ✅ show UI once ready */
 function showApp() {
  document.getElementById("fallback").style.display = "none";
  document.getElementById("app").style.display = "block";
 }
+
+/* existing functions unchanged below */
 
 function getIconFile(code) {
  if (code === 0) return "Sun.svg";
@@ -199,6 +200,27 @@ function getTempColor(tempF) {
  return "#ff6b6b";
 }
 
+function getTodayKeyInTZ(tz) {
+ const parts = new Intl.DateTimeFormat("en-CA", {
+  timeZone: tz,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit"
+ }).formatToParts(new Date());
+
+ return parts.find(p=>p.type==="year").value + "-" +
+        parts.find(p=>p.type==="month").value + "-" +
+        parts.find(p=>p.type==="day").value;
+}
+
+function weekdayFromISO(dateStr, tz) {
+ const safeDate = new Date(dateStr + "T12:00:00");
+ return new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  timeZone: tz
+ }).format(safeDate);
+}
+
 async function loadWeather() {
  try {
 
@@ -213,39 +235,49 @@ async function loadWeather() {
   document.getElementById("temp").innerText = tempF + "°F";
   document.getElementById("temp").style.color = getTempColor(tempF);
 
+  var currentFile = getIconFile(data.current_weather.weathercode);
   document.getElementById("icon").innerHTML =
-    '<img src="' + getIconFile(data.current_weather.weathercode) + '">';
+    '<img src="' + currentFile + '">';
 
   document.getElementById("wind").innerText =
     "Wind: " + Math.round(data.current_weather.windspeed) + " mph";
 
-  // ✅ Delay forecast rendering slightly (helps stability)
-  setTimeout(() => {
-    buildForecast(data);
-  }, 300);
+  const todayKey = getTodayKeyInTZ(DISPLAY_TZ);
+  let startIndex = data.daily.time.indexOf(todayKey);
+  if (startIndex < 0) startIndex = 0;
 
-  showApp();
+  var html = "";
 
- } catch (e) {
-  showApp();
- }
-}
+  for (var i = startIndex; i < Math.min(startIndex + 5, data.daily.time.length); i++) {
 
-function buildForecast(data) {
- var html = "";
+   var code = data.daily.weathercode[i];
+   var file = getIconFile(code);
 
- for (var i = 0; i < 5; i++) {
+   var rain = data.daily.precipitation_probability_max[i];
    var high = Math.round((data.daily.temperature_2m_max[i]*9/5)+32);
    var low  = Math.round((data.daily.temperature_2m_min[i]*9/5)+32);
 
-   html += '<div class="forecast-day">';
-   html += '<div>Day</div>';
-   html += '<div class="icon"><img srcg</div>';
-   html += '<div><span style="color:#ffd166;">' + high + '°</span> / ' + low + '°</div>';
-   html += '</div>';
- }
+   var label = weekdayFromISO(data.daily.time[i], DISPLAY_TZ);
 
- document.getElementById("forecast").innerHTML = html;
+   html += '<div class="forecast-day ' + (i===startIndex ? 'today' : '') + '">';
+   html += '<div>' + label + '</div>';
+   html += '<div class="icon"><img src="' + file + '"></div>';
+   html += '<div><span style="color:#ffd166;">' + high + '°</span> / ' + low + '°</div>';
+   html += '<div class="rain">' + rain + '%</div>';
+   html += '</div>';
+  }
+
+  document.getElementById("forecast").innerHTML = html;
+
+  // ✅ SHOW UI ONLY AFTER DATA READY
+  showApp();
+
+ } catch (e) {
+  document.getElementById("temp").innerText = "--°F";
+
+  // still show UI so it never stays blank
+  showApp();
+ }
 }
 
 function updateClock() {
@@ -267,10 +299,12 @@ function updateClock() {
   });
 }
 
-/* ✅ Give browser time to stabilize */
+/* ✅ DELAY LOAD (critical for that one TV) */
 setTimeout(() => {
  loadWeather();
-}, 1500);
+}, 1000);
+
+setInterval(loadWeather, 600000);
 
 updateClock();
 setInterval(updateClock, 60000);
@@ -279,4 +313,3 @@ setInterval(updateClock, 60000);
 
 </body>
 </html>
-``
